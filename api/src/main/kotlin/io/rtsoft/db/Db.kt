@@ -15,7 +15,7 @@ object Users : Table("users") {
 fun initDb() {
     Database.connect(
         url = "jdbc:h2:./data/mydb;DB_CLOSE_DELAY=-1",
-        driver = "org.h2.Driver"
+        driver = "org.h2.Driver",
     )
     transaction {
         SchemaUtils.create(Users)
