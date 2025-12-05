@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.Jadiefication.Void:Void-HTML:v2.0.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.github.Jadiefication.Void" artifactId="Void-HTML" version="v2.0.0" baseVersion="v2.0.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.Jadiefication.Void/Void-HTML/v2.0.0/73d03663356892cec951a67d2a4c038e81163a34/Void-HTML-v2.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.Jadiefication.Void/Void-HTML/v2.0.0/8c51ea66de685ad3b73148e1b0612549291d43ac/Void-HTML-v2.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

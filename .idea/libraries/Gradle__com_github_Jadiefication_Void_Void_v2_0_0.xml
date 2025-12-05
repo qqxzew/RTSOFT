@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.Jadiefication.Void:Void:v2.0.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.github.Jadiefication.Void" artifactId="Void" version="v2.0.0" baseVersion="v2.0.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.Jadiefication.Void/Void/v2.0.0/9dd6f21a718b9ced931be4bc40f3298e09eeb4e2/Void-v2.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.Jadiefication.Void/Void/v2.0.0/d4dbccf3939a6a01ea550d6dfebd56425045349f/Void-v2.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

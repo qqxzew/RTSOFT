@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/RTSOFT.iml" filepath="$PROJECT_DIR$/.idea/RTSOFT.iml" />
+      <module fileurl="file://$PROJECT_DIR$/api.iml" filepath="$PROJECT_DIR$/api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api.test.iml" filepath="$PROJECT_DIR$/.idea/modules/api.test.iml" />
     </modules>
   </component>
 </project>
