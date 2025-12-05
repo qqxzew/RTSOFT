@@ -1,11 +1,7 @@
-import io.rtsoft.auth.AuthRequest
-import io.rtsoft.auth.AuthResponse
-import io.rtsoft.auth.createToken
-import io.rtsoft.auth.hashPassword
-import io.rtsoft.auth.verifyPassword
-import io.rtsoft.auth.verifyToken
+import io.rtsoft.auth.*
 import io.rtsoft.db.Users
 import io.rtsoft.db.initDb
+import io.voidx.dto.buildRequest
 import io.voidx.dto.buildResponse
 import io.voidx.fetch
 import io.voidx.json.parseBody
@@ -13,7 +9,6 @@ import io.voidx.json.toJson
 import io.voidx.simpleServer
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.net.URLEncoder
@@ -23,6 +18,11 @@ fun main() {
     initDb()
 
     val server = simpleServer {
+        if (fetch("http://localhost:5000/", buildRequest {
+
+        }).getOrNull()?.status != 200) {
+            throw Exception("Flask endpoint not running")
+        }
         route("/__signup__") {
             POST { req ->
                 val authReq = req.parseBody<AuthRequest>().getOrNull()!!
