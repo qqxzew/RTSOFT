@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.2.20"
     application
+    kotlin("plugin.serialization") version "2.2.20"
 }
 
 group = "io.void"
@@ -14,16 +15,21 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("com.github.Jadiefication:Void:v2.0.0")
-    api(libs.org.jetbrains.kotlin.kotlin.stdlib)
-    api(libs.org.jetbrains.kotlin.kotlin.reflect)
-    api(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
+    implementation("com.auth0:java-jwt:4.4.0")
+    implementation(libs.org.jetbrains.kotlin.kotlin.stdlib)
+    implementation(libs.org.jetbrains.kotlin.kotlin.reflect)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.h2)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(24)
+    jvmToolchain(21)
 }
 
 application {
