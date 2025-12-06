@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion } from "framer-motion";
+import { ReactNode } from "react";
 
 interface GlassCardProps {
   children: ReactNode;
@@ -9,7 +9,13 @@ interface GlassCardProps {
   delay?: number;
 }
 
-export const GlassCard = ({ children, className = '', onClick, hover = true, delay = 0 }: GlassCardProps) => {
+export const GlassCard = ({
+  children,
+  className = "",
+  onClick,
+  hover = true,
+  delay = 0,
+}: GlassCardProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -23,13 +29,11 @@ export const GlassCard = ({ children, className = '', onClick, hover = true, del
         rounded-3xl shadow-glass
         hover:shadow-glass-hover
         transition-all duration-300
-        ${onClick ? 'cursor-pointer' : ''}
+        ${onClick ? "cursor-pointer" : ""}
         ${className}
       `}
     >
-      <div className="relative z-10">
-        {children}
-      </div>
+      <div className="relative z-10">{children}</div>
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
     </motion.div>
   );

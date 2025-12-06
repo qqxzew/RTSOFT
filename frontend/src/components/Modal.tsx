@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import type { ReactNode } from 'react';
-import { modalAnimation } from '../utils/animations';
+import { motion, AnimatePresence } from "framer-motion";
+import type { ReactNode } from "react";
+import { modalAnimation } from "../utils/animations";
 
 interface ModalProps {
   isOpen: boolean;
@@ -36,8 +36,18 @@ export const Modal = ({ isOpen, onClose, children, title }: ModalProps) => {
                     className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 
                              flex items-center justify-center transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>

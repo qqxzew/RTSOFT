@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 export const LoadingScreen = () => {
   return (
@@ -28,7 +28,7 @@ export const LoadingScreen = () => {
         >
           Načítání...
         </motion.h2>
-        
+
         <motion.p
           className="text-gray-600"
           initial={{ opacity: 0 }}

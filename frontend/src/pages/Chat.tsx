@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export const Chat = () => {
   useEffect(() => {
     // Redirect to the static HTML file
-    window.location.href = '/chat.html';
+    window.location.href = "/chat.html";
   }, []);
 
   return (

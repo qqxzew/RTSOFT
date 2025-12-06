@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface Particle {
   id: number;
@@ -31,16 +31,16 @@ export const AnimatedBackground = () => {
         className="absolute inset-0"
         animate={{
           background: [
-            'radial-gradient(circle at 20% 50%, rgba(0, 255, 156, 0.08) 0%, transparent 50%)',
-            'radial-gradient(circle at 80% 80%, rgba(0, 255, 156, 0.08) 0%, transparent 50%)',
-            'radial-gradient(circle at 40% 20%, rgba(0, 255, 156, 0.08) 0%, transparent 50%)',
-            'radial-gradient(circle at 20% 50%, rgba(0, 255, 156, 0.08) 0%, transparent 50%)',
+            "radial-gradient(circle at 20% 50%, rgba(0, 255, 156, 0.08) 0%, transparent 50%)",
+            "radial-gradient(circle at 80% 80%, rgba(0, 255, 156, 0.08) 0%, transparent 50%)",
+            "radial-gradient(circle at 40% 20%, rgba(0, 255, 156, 0.08) 0%, transparent 50%)",
+            "radial-gradient(circle at 20% 50%, rgba(0, 255, 156, 0.08) 0%, transparent 50%)",
           ],
         }}
         transition={{
           duration: 20,
           repeat: Infinity,
-          ease: 'linear',
+          ease: "linear",
         }}
       />
 
@@ -63,16 +63,20 @@ export const AnimatedBackground = () => {
             duration: particle.duration,
             repeat: Infinity,
             delay: particle.delay,
-            ease: 'easeInOut',
+            ease: "easeInOut",
           }}
         />
       ))}
 
       <div className="absolute top-20 right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 left-20 w-[32rem] h-[32rem] bg-primary/5 rounded-full blur-3xl animate-float" 
-           style={{ animationDelay: '2s' }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-primary/3 rounded-full blur-3xl animate-float" 
-           style={{ animationDelay: '4s' }} />
+      <div
+        className="absolute bottom-20 left-20 w-[32rem] h-[32rem] bg-primary/5 rounded-full blur-3xl animate-float"
+        style={{ animationDelay: "2s" }}
+      />
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-primary/3 rounded-full blur-3xl animate-float"
+        style={{ animationDelay: "4s" }}
+      />
     </div>
   );
 };

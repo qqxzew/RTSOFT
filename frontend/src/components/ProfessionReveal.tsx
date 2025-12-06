@@ -1,12 +1,15 @@
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface ProfessionRevealProps {
   profession: string;
   onComplete?: () => void;
 }
 
-export const ProfessionReveal = ({ profession, onComplete }: ProfessionRevealProps) => {
+export const ProfessionReveal = ({
+  profession,
+  onComplete,
+}: ProfessionRevealProps) => {
   const [showGlow, setShowGlow] = useState(false);
 
   useEffect(() => {
@@ -23,15 +26,17 @@ export const ProfessionReveal = ({ profession, onComplete }: ProfessionRevealPro
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-3xl" />
-      
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="absolute inset-0"
       >
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" 
-             style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        />
       </motion.div>
 
       <div className="relative z-10 text-center px-8 max-w-4xl">
@@ -66,7 +71,7 @@ export const ProfessionReveal = ({ profession, onComplete }: ProfessionRevealPro
               />
             </>
           )}
-          
+
           <motion.h2
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -94,12 +99,12 @@ export const ProfessionReveal = ({ profession, onComplete }: ProfessionRevealPro
               transition={{
                 duration: 2,
                 delay: 1.5 + i * 0.05,
-                repeat: 0
+                repeat: 0,
               }}
               className="absolute w-2 h-2 bg-primary rounded-full"
               style={{
                 left: `${50 + (Math.random() - 0.5) * 40}%`,
-                top: '50%'
+                top: "50%",
               }}
             />
           ))}

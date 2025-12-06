@@ -1,5 +1,5 @@
-import { motion, useMotionValue, useTransform } from 'framer-motion';
-import { useEffect } from 'react';
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { useEffect } from "react";
 
 interface HeroSectionProps {
   onContinue: () => void;
@@ -20,33 +20,36 @@ export const HeroSection = ({ onContinue }: HeroSectionProps) => {
       mouseY.set(clientY - innerHeight / 2);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [mouseX, mouseY]);
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100" />
-      
+
       <motion.div
         className="absolute inset-0"
         animate={{
-          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
+          backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
         }}
         transition={{
           duration: 20,
           repeat: Infinity,
-          ease: 'linear',
+          ease: "linear",
         }}
         style={{
-          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(0, 255, 156, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 255, 156, 0.05) 0%, transparent 50%)',
-          backgroundSize: '200% 200%',
+          backgroundImage:
+            "radial-gradient(circle at 20% 50%, rgba(0, 255, 156, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 255, 156, 0.05) 0%, transparent 50%)",
+          backgroundSize: "200% 200%",
         }}
       />
 
       <div className="absolute top-10 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float" 
-           style={{ animationDelay: '2s' }} />
+      <div
+        className="absolute bottom-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float"
+        style={{ animationDelay: "2s" }}
+      />
 
       <div className="relative z-10 max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-12 items-center">
         <motion.div
@@ -61,8 +64,10 @@ export const HeroSection = ({ onContinue }: HeroSectionProps) => {
             transition={{ delay: 0.2 }}
             className="inline-block"
           >
-            <div className="px-4 py-2 rounded-full bg-primary/10 border border-primary/20 
-                          backdrop-blur-xl text-primary font-medium text-sm">
+            <div
+              className="px-4 py-2 rounded-full bg-primary/10 border border-primary/20 
+                          backdrop-blur-xl text-primary font-medium text-sm"
+            >
               🎓 Kariérní poradenství nové generace
             </div>
           </motion.div>
@@ -91,7 +96,8 @@ export const HeroSection = ({ onContinue }: HeroSectionProps) => {
             transition={{ delay: 0.5 }}
             className="text-lg text-gray-500 max-w-lg"
           >
-            Inteligentní asistent, který pomáhá studentům 8.–9. tříd najít svou ideální kariérní cestu pomocí moderní AI technologie.
+            Inteligentní asistent, který pomáhá studentům 8.–9. tříd najít svou
+            ideální kariérní cestu pomocí moderní AI technologie.
           </motion.p>
 
           <motion.div
@@ -137,8 +143,18 @@ export const HeroSection = ({ onContinue }: HeroSectionProps) => {
               <div className="aspect-[4/5] bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden relative">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-32 h-32 rounded-full bg-primary/20 flex items-center justify-center">
-                    <svg className="w-16 h-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg
+                      className="w-16 h-16 text-primary"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -155,7 +171,9 @@ export const HeroSection = ({ onContinue }: HeroSectionProps) => {
           >
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm font-medium text-gray-700">AI asistent aktivní</span>
+              <span className="text-sm font-medium text-gray-700">
+                AI asistent aktivní
+              </span>
             </div>
           </motion.div>
 
@@ -167,7 +185,9 @@ export const HeroSection = ({ onContinue }: HeroSectionProps) => {
           >
             <div className="text-center">
               <div className="text-3xl font-bold text-primary">98%</div>
-              <div className="text-xs text-gray-600 mt-1">Přesnost doporučení</div>
+              <div className="text-xs text-gray-600 mt-1">
+                Přesnost doporučení
+              </div>
             </div>
           </motion.div>
         </motion.div>

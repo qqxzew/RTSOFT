@@ -1,20 +1,20 @@
-import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion } from "framer-motion";
+import { ReactNode } from "react";
 
 interface GradientButtonProps {
   children: ReactNode;
   onClick?: () => void;
   className?: string;
-  variant?: 'primary' | 'secondary';
+  variant?: "primary" | "secondary";
   disabled?: boolean;
 }
 
-export const GradientButton = ({ 
-  children, 
-  onClick, 
-  className = '', 
-  variant = 'primary',
-  disabled = false 
+export const GradientButton = ({
+  children,
+  onClick,
+  className = "",
+  variant = "primary",
+  disabled = false,
 }: GradientButtonProps) => {
   const primaryStyles = `
     bg-gradient-to-r from-primary via-primary-dark to-primary
@@ -38,8 +38,8 @@ export const GradientButton = ({
       className={`
         px-8 py-4 rounded-2xl
         transition-all duration-300
-        ${variant === 'primary' ? primaryStyles : secondaryStyles}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        ${variant === "primary" ? primaryStyles : secondaryStyles}
+        ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
         ${className}
       `}
     >

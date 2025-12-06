@@ -1,23 +1,35 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
-import { apiService } from '../utils/api';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { apiService } from "../utils/api";
 
 export const Auth = () => {
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+  const handleGoogleSuccess = async (
+    credentialResponse: CredentialResponse,
+  ) => {
+    const isAuthenticated = apiService.isAuthenticated();
+    const onboardingComplete = localStorage.getItem("onboardingComplete");
+
+    if (isAuthenticated && onboardingComplete) {
+      return <Navigate to="/" replace />;
+    } else if (isAuthenticated && !onboardingComplete) {
+      return <Navigate to="/ai-onboarding" replace />;
+    }
+
     if (!credentialResponse.credential) {
-      setError('Přihlášení se nezdařilo');
+      setError("Přihlášení se nezdařilo");
       return;
     }
 
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
@@ -26,17 +38,23 @@ export const Auth = () => {
       } else {
         await apiService.signInWithGoogle(credentialResponse.credential);
       }
-      localStorage.setItem('isAuthenticated', 'true');
-      navigate('/ai-onboarding');
+      localStorage.setItem("isAuthenticated", "true");
+      navigate("/ai-onboarding");
     } catch (err) {
-      setError(err instanceof Error ? err.message : isSignUp ? 'Registrace se nezdařila' : 'Přihlášení se nezdařilo');
+      setError(
+        err instanceof Error
+          ? err.message
+          : isSignUp
+            ? "Registrace se nezdařila"
+            : "Přihlášení se nezdařilo",
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleError = () => {
-    setError('Přihlášení přes Google se nezdařilo');
+    setError("Přihlášení přes Google se nezdařilo");
   };
 
   return (
@@ -103,11 +121,19 @@ export const Auth = () => {
             <div className="inline-flex items-center justify-center w-20 h-20 mb-4 bg-gradient-to-br from-[#86BC25] to-[#6a9c1d] rounded-3xl shadow-2xl">
               <Sparkles className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-              {isSignUp ? 'Vytvořit účet' : 'Vítejte zpět!'}
+            <h1
+              className="text-4xl font-bold bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent mb-2"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {isSignUp ? "Vytvořit účet" : "Vítejte zpět!"}
             </h1>
-            <p className="text-gray-600 font-medium" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-              {isSignUp ? 'Zaregistrujte se pomocí Google účtu' : 'Přihlaste se pomocí Google účtu'}
+            <p
+              className="text-gray-600 font-medium"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {isSignUp
+                ? "Zaregistrujte se pomocí Google účtu"
+                : "Přihlaste se pomocí Google účtu"}
             </p>
           </motion.div>
 
@@ -133,7 +159,10 @@ export const Auth = () => {
                       exit={{ opacity: 0, y: -10 }}
                       className="p-3 bg-red-50 border border-red-200 rounded-xl"
                     >
-                      <p className="text-sm font-medium text-red-600 text-center" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                      <p
+                        className="text-sm font-medium text-red-600 text-center"
+                        style={{ fontFamily: "Montserrat, sans-serif" }}
+                      >
                         {error}
                       </p>
                     </motion.div>
@@ -167,24 +196,31 @@ export const Auth = () => {
                   transition={{ delay: 0.5 }}
                   className="mt-4 p-4 bg-gray-50/50 border border-gray-200 rounded-xl"
                 >
-                  <p className="text-xs text-gray-500 text-center font-medium" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                    🔒 Bezpečné {isSignUp ? 'registrace' : 'přihlášení'} přes Google
+                  <p
+                    className="text-xs text-gray-500 text-center font-medium"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  >
+                    🔒 Bezpečné {isSignUp ? "registrace" : "přihlášení"} přes
+                    Google
                   </p>
                 </motion.div>
               </div>
 
               {/* Toggle Sign In / Sign Up */}
               <div className="mt-6 text-center">
-                <p className="text-gray-600 font-medium" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  {isSignUp ? 'Již máte účet?' : 'Nemáte účet?'}
+                <p
+                  className="text-gray-600 font-medium"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  {isSignUp ? "Již máte účet?" : "Nemáte účet?"}
                   <button
                     onClick={() => {
                       setIsSignUp(!isSignUp);
-                      setError('');
+                      setError("");
                     }}
                     className="ml-2 text-[#86BC25] hover:text-[#6a9c1d] font-bold transition-colors"
                   >
-                    {isSignUp ? 'Přihlaste se' : 'Zaregistrujte se'}
+                    {isSignUp ? "Přihlaste se" : "Zaregistrujte se"}
                   </button>
                 </p>
               </div>

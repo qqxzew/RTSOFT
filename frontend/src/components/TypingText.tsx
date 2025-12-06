@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 interface TypingTextProps {
   text: string;
@@ -9,14 +9,14 @@ interface TypingTextProps {
   delay?: number;
 }
 
-export const TypingText = ({ 
-  text, 
-  speed = 50, 
-  onComplete, 
-  className = '',
-  delay = 0 
+export const TypingText = ({
+  text,
+  speed = 50,
+  onComplete,
+  className = "",
+  delay = 0,
 }: TypingTextProps) => {
-  const [displayedText, setDisplayedText] = useState('');
+  const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [started, setStarted] = useState(false);
 
@@ -33,8 +33,8 @@ export const TypingText = ({
 
     if (currentIndex < text.length) {
       const timeout = setTimeout(() => {
-        setDisplayedText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
+        setDisplayedText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
       }, speed);
 
       return () => clearTimeout(timeout);

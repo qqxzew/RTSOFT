@@ -103,9 +103,9 @@ export const glowAnimation = {
 
 export const rotateIn = {
   initial: { opacity: 0, rotate: -180, scale: 0 },
-  animate: { 
-    opacity: 1, 
-    rotate: 0, 
+  animate: {
+    opacity: 1,
+    rotate: 0,
     scale: 1,
     transition: springConfigs.bouncy,
   },
@@ -113,13 +113,13 @@ export const rotateIn = {
 
 export const pageTransition = {
   initial: { opacity: 0, x: 100 },
-  animate: { 
-    opacity: 1, 
+  animate: {
+    opacity: 1,
     x: 0,
     transition: springConfigs.smooth,
   },
-  exit: { 
-    opacity: 0, 
+  exit: {
+    opacity: 0,
     x: -100,
     transition: { duration: 0.3 },
   },
@@ -127,15 +127,15 @@ export const pageTransition = {
 
 export const modalAnimation = {
   initial: { opacity: 0, scale: 0.9, y: 20 },
-  animate: { 
-    opacity: 1, 
-    scale: 1, 
+  animate: {
+    opacity: 1,
+    scale: 1,
     y: 0,
     transition: springConfigs.smooth,
   },
-  exit: { 
-    opacity: 0, 
-    scale: 0.9, 
+  exit: {
+    opacity: 0,
+    scale: 0.9,
     y: 20,
     transition: { duration: 0.2 },
   },
