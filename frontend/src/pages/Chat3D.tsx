@@ -633,11 +633,14 @@ export const Chat3D = () => {
     // ============================================
     // RENDER
     // ============================================
+    // ...keep all imports and logic the same
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
+            {/* Background bubbles */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-20 right-20 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-20 left-20 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl" />
+                <div className="absolute top-20 right-20 w-80 h-80 bg-green-100/30 rounded-full blur-3xl" />
+                <div className="absolute bottom-20 left-20 w-80 h-80 bg-blue-100/30 rounded-full blur-3xl" />
             </div>
 
             <section className="h-screen flex items-center justify-center px-8 pt-20 pb-8 relative z-10">
@@ -647,7 +650,7 @@ export const Chat3D = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6 }}
-                        className="relative bg-gradient-to-br from-indigo-900 to-purple-900 rounded-3xl border-2 border-purple-200/40 overflow-hidden shadow-2xl"
+                        className="relative bg-white/90 rounded-3xl border border-gray-200 overflow-hidden shadow-xl"
                         style={{ minHeight: "70vh" }}
                     >
                         <div
@@ -656,22 +659,17 @@ export const Chat3D = () => {
                             style={{ minHeight: "70vh" }}
                         />
 
-                        {/* Status overlay */}
-                        {modelStatus && (
-                            <div className="absolute left-4 top-4 z-20 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl text-sm font-bold text-gray-800">
-                                {modelStatus}
-                            </div>
-                        )}
-
                         {/* Recording indicator */}
                         <div
                             className={`absolute top-6 left-1/2 transform -translate-x-1/2 z-20 transition-opacity ${
-                                isPushingToTalk ? "opacity-100" : isAISpeaking ? "opacity-100" : "opacity-0"
+                                isPushingToTalk || isAISpeaking ? "opacity-100" : "opacity-0"
                             }`}
                         >
-                            <div className={`inline-flex items-center gap-3 px-4 py-2 rounded-full font-bold text-white ${
-                                isPushingToTalk ? "bg-red-600" : "bg-green-600"
-                            }`}>
+                            <div
+                                className={`inline-flex items-center gap-3 px-4 py-2 rounded-full font-bold text-white ${
+                                    isPushingToTalk ? "bg-red-500" : "bg-green-500"
+                                }`}
+                            >
                                 <span className="w-3 h-3 bg-white rounded-full animate-pulse" />
                                 <span>{isPushingToTalk ? "Nahrávám..." : "Mluvím..."}</span>
                             </div>
@@ -681,7 +679,7 @@ export const Chat3D = () => {
                         {isRealtimeConnected && (
                             <button
                                 onClick={disconnectRealtime}
-                                className="absolute top-4 right-4 z-20 bg-red-600/90 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition"
+                                className="absolute top-4 right-4 z-20 bg-red-500/80 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition"
                             >
                                 ✕ Odpojit
                             </button>
@@ -695,7 +693,7 @@ export const Chat3D = () => {
                         transition={{ duration: 0.6 }}
                         className="relative"
                     >
-                        <div className="relative flex flex-col p-6 bg-white/80 backdrop-blur-2xl border-2 border-purple-200/50 rounded-3xl shadow-xl h-full">
+                        <div className="relative flex flex-col p-6 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-3xl shadow-lg h-full">
                             <div className="mb-6">
                                 <h2 className="text-3xl font-black text-gray-900" style={{ fontFamily: "Montserrat, sans-serif" }}>
                                     Video konzultace
@@ -707,41 +705,13 @@ export const Chat3D = () => {
 
                             <div className="flex-1 flex flex-col gap-4">
                                 {/* Avatar info card */}
-                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-4 flex items-center gap-4 border border-purple-200">
-                                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-3xl shadow-lg">
+                                <div className="bg-white rounded-2xl p-4 flex items-center gap-4 border border-gray-200 shadow-sm">
+                                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center text-3xl shadow-md">
                                         👩‍🎓
                                     </div>
                                     <div>
                                         <div className="text-lg font-bold text-gray-900">Klára</div>
-                                        <div className="text-xs text-gray-600">Školní poradkyně — Plzeňský kraj</div>
-                                    </div>
-                                </div>
-
-                                {/* Status display */}
-                                <div className="bg-white/60 rounded-xl p-4 border border-purple-100 min-h-[120px]">
-                                    <div className="text-xs font-semibold text-purple-600 mb-2 uppercase tracking-wide">
-                                        Status
-                                    </div>
-                                    <div className="text-base text-gray-800 font-medium">
-                                        {recordingText}
-                                    </div>
-                                    {modelStatus && (
-                                        <div className="text-sm text-gray-500 mt-2">
-                                            {modelStatus}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Connection info */}
-                                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <div className="text-xs font-semibold text-gray-600 uppercase">Realtime API</div>
-                                            <div className="text-sm font-bold text-gray-900 mt-1">
-                                                {isRealtimeConnected ? "✓ Připojeno" : "○ Odpojeno"}
-                                            </div>
-                                        </div>
-                                        <div className={`w-3 h-3 rounded-full ${isRealtimeConnected ? "bg-green-500 animate-pulse" : "bg-gray-300"}`} />
+                                        <div className="text-xs text-gray-500">Školní poradkyně — Plzeňský kraj</div>
                                     </div>
                                 </div>
 
@@ -755,43 +725,30 @@ export const Chat3D = () => {
                                         onTouchEnd={(e) => { e.preventDefault(); stopTalking(); }}
                                         onClick={handleMicClick}
                                         disabled={isAISpeaking}
-                                        className={`flex-1 px-6 py-4 rounded-2xl font-bold text-white shadow-xl transition-all transform flex items-center justify-center gap-3 text-lg ${
+                                        className={`flex-1 px-6 py-4 rounded-2xl font-bold text-white shadow-md transition-all transform flex items-center justify-center gap-3 text-lg ${
                                             isAISpeaking
-                                                ? "bg-gray-400 cursor-not-allowed opacity-60"
+                                                ? "bg-gray-300 cursor-not-allowed opacity-60"
                                                 : isPushingToTalk
-                                                    ? "bg-gradient-to-r from-red-600 to-red-500 scale-95"
+                                                    ? "bg-red-500 scale-95"
                                                     : isRealtimeConnected
-                                                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95"
-                                                        : "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 active:scale-95"
+                                                        ? "bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 active:scale-95"
+                                                        : "bg-gray-400 hover:bg-gray-500 active:scale-95"
                                         }`}
                                     >
-                    <span className="text-3xl">
-                      {isAISpeaking ? "⏳" : isPushingToTalk ? "🔴" : "🎤"}
-                    </span>
+                  <span className="text-3xl">
+                    {isAISpeaking ? "⏳" : isPushingToTalk ? "🔴" : "🎤"}
+                  </span>
                                         <span>
-                      {isAISpeaking
-                          ? "AI mluví..."
-                          : isPushingToTalk
-                              ? "Nahrávám"
-                              : isRealtimeConnected
-                                  ? "Drž a mluv"
-                                  : "Připojit se"}
-                    </span>
+                    {isAISpeaking
+                        ? "AI mluví..."
+                        : isPushingToTalk
+                            ? "Nahrávám"
+                            : isRealtimeConnected
+                                ? "Drž a mluv"
+                                : "Připojit se"}
+                  </span>
                                     </button>
                                 </div>
-
-                                {/* Instructions */}
-                                <div className="text-xs text-gray-500 text-center space-y-1">
-                                    <p>💡 <strong>Tip:</strong> Drž tlačítko během mluvení</p>
-                                    <p>Pusť tlačítko, aby AI odpověděla</p>
-                                </div>
-
-                                {/* Model status */}
-                                {modelLoaded && (
-                                    <div className="text-xs text-center text-green-600 font-semibold">
-                                        ✓ 3D model načten
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -799,4 +756,5 @@ export const Chat3D = () => {
             </section>
         </div>
     );
+
 }
