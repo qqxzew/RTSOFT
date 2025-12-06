@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Hlasový chat</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #scene-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30%;
+            pointer-events: none;
+        }
+        
+        .controls button {
+            pointer-events: all;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        #mic-btn {
+            background: #28a745;
+            color: white;
+        }
+        #mic-btn:hover {
+            background: #218838;
+            transform: scale(1.1);
+        }
+        #mic-btn.recording {
+            background: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+        
+        #close-btn {
+            background: #dc3545;
+            color: white;
+        }
+        #close-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            50% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); }
+        }
+        
+        #recording-indicator {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(220, 53, 69, 0.9);
+            padding: 12px 25px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            color: white;
+            font-weight: bold;
+        }
+        #recording-indicator.active {
+            opacity: 1;
+        }
+        .rec-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            text-align: center;
+            color: white;
+        }
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #69db7c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #status {
+            position: absolute;
+            bottom: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #status.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="scene-container">
+        <div id="recording-indicator">
+            <div class="rec-dot"></div>
+            <span>Nahrávám...</span>
+        </div>
+        
+        <div id="loading">
+            <div class="spinner"></div>
+            Načítání...
+        </div>
+        
+        <div id="status"></div>
+        
+        <div class="controls">
+            <button id="mic-btn" onclick="toggleRecording()">🎤</button>
+            <button id="close-btn" onclick="closeApp()">✕</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>
+        const API = 'http://localhost:5000';
+        const AVATAR_FILE = 'brunette.glb';
+        const SESSION_ID = 'session_' + Date.now();
+        
+        let model = null;
+        let mixer = null;
+        let morphMeshes = [];
+        let isSpeaking = false;
+        let mouthOpenValue = 0;
+        
+        let audioContext = null;
+        let analyser = null;
+        let dataArray = null;
+        
+        let blinkTimer = 0;
+        let nextBlinkTime = 3;
+        
+        let mediaRecorder = null;
+        let chunks = [];
+        let isRecording = false;
+        
+        function showStatus(text) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.classList.add('active');
+        }
+        
+        function hideStatus() {
+            document.getElementById('status').classList.remove('active');
+        }
+        
+        window.closeApp = function() {
+            if (confirm('Ukončit aplikaci?')) {
+                window.close();
+                setTimeout(() => alert('Zavřete kartu ručně'), 100);
+            }
+        };
+
+        // ============================================
+        // 3D SCÉNA
+        // ============================================
+        const container = document.getElementById('scene-container');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(30, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 1.5, 1.2);
+        camera.lookAt(0, 1.5, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1;
+        container.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        
+        const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        keyLight.position.set(1, 2, 2);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        fillLight.position.set(-1, 1, 2);
+        scene.add(fillLight);
+
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        backLight.position.set(0, 1, -2);
+        scene.add(backLight);
+
+        // ============================================
+        // NAČTENÍ MODELU
+        // ============================================
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+            AVATAR_FILE,
+            function(gltf) {
+                model = gltf.scene;
+                model.position.set(0, 0, 0);
+                scene.add(model);
+
+                model.traverse((child) => {
+                    if (child.isMesh && child.morphTargetInfluences && child.morphTargetDictionary) {
+                        morphMeshes.push(child);
+                        console.log('Morph mesh:', child.name);
+                        console.log('Morph targets:', Object.keys(child.morphTargetDictionary));
+                    }
+                });
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    const idleAnim = gltf.animations.find(a => 
+                        a.name.toLowerCase().includes('idle')
+                    ) || gltf.animations[0];
+                    
+                    if (idleAnim) {
+                        mixer.clipAction(idleAnim).play();
+                    }
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                console.log('Model načten!');
+            },
+            function(xhr) {
+                const percent = Math.round(xhr.loaded / xhr.total * 100);
+                document.getElementById('loading').innerHTML = 
+                    '<div class="spinner"></div>Načítání... ' + percent + '%';
+            },
+            function(error) {
+                console.error('Chyba:', error);
+                document.getElementById('loading').innerHTML = 
+                    'Chyba načítání<br><small>Vlož ' + AVATAR_FILE + ' do stejné složky</small>';
+            }
+        );
+
+        // ============================================
+        // ANIMACE ÚST (MORPH TARGETS)
+        // ============================================
+        const MOUTH_MORPH_NAMES = [
+            'mouthOpen', 'jawOpen', 'viseme_aa', 'viseme_O', 'viseme_U', 'A', 'O', 'MouthOpen'
+        ];
+
+        function setMouthOpen(value) {
+            morphMeshes.forEach(mesh => {
+                const dict = mesh.morphTargetDictionary;
+                
+                for (const name of MOUTH_MORPH_NAMES) {
+                    if (dict[name] !== undefined) {
+                        mesh.morphTargetInfluences[dict[name]] = value;
+                    }
+                }
+                
+                if (dict['viseme_aa'] !== undefined) {
+                    mesh.morphTargetInfluences[dict['viseme_aa']] = value * 0.7;
+                }
+                if (dict['viseme_O'] !== undefined) {
+                    mesh.morphTargetInfluences[dict['viseme_O']] = value * 0.3;
+                }
+            });
+        }
+
+        function animateMouth() {
+            if (isSpeaking && analyser && dataArray) {
+                analyser.getByteFrequencyData(dataArray);
+                const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length / 255;
+                const target = Math.min(volume * 3.0, 0.9);
+                mouthOpenValue += (target - mouthOpenValue) * 0.35;
+            } else if (isSpeaking) {
+                const target = 0.3 + Math.random() * 0.5;
+                mouthOpenValue += (target - mouthOpenValue) * 0.3;
+            } else {
+                mouthOpenValue *= 0.85;
+                if (mouthOpenValue < 0.01) mouthOpenValue = 0;
+            }
+            
+            setMouthOpen(mouthOpenValue);
+        }
+        
+        function animateBlink(delta) {
+            blinkTimer += delta;
+            
+            if (blinkTimer > nextBlinkTime) {
+                blinkTimer = 0;
+                nextBlinkTime = 2 + Math.random() * 4;
+                
+                morphMeshes.forEach(mesh => {
+                    const dict = mesh.morphTargetDictionary;
+                    const influences = mesh.morphTargetInfluences;
+                    
+                    ['eyesClosed', 'eyeBlinkLeft', 'eyeBlinkRight', 'eyeBlink'].forEach(name => {
+                        if (dict[name] !== undefined) {
+                            influences[dict[name]] = 1.0;
+                            setTimeout(() => { influences[dict[name]] = 0; }, 120);
+                        }
+                    });
+                });
+            }
+        }
+
+        // ============================================
+        // ANIMAČNÍ LOOP
+        // ============================================
+        const clock = new THREE.Clock();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const delta = clock.getDelta();
+            
+            if (mixer) mixer.update(delta);
+            animateMouth();
+            animateBlink(delta);
+            
+            if (model && isSpeaking) {
+                model.rotation.y = Math.sin(Date.now() * 0.002) * 0.03;
+                model.rotation.x = Math.sin(Date.now() * 0.0015) * 0.015;
+            } else if (model) {
+                model.rotation.y *= 0.95;
+                model.rotation.x *= 0.95;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // ============================================
+        // TEXT-TO-SPEECH (ИСПРАВЛЕННЫЙ)
+        // ============================================
+        async function speak(text) {
+            if (!text || text.trim().length === 0) return;
+            
+            console.log('Говорю:', text);
+            showStatus('Mluvím...');
+            
+            try {
+                // Инициализируем AudioContext
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                
+                // Создаём analyser
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                // Получаем аудио от сервера
+                const response = await fetch(API + '/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('TTS error: ' + response.status);
+                }
+                
+                // Декодируем аудио через AudioContext (не через Audio element)
+                const audioData = await response.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(audioData);
+                
+                // Создаём источник
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                
+                isSpeaking = true;
+                
+                source.onended = () => {
+                    isSpeaking = false;
+                    hideStatus();
+                    console.log('Dokončeno');
+                };
+                
+                source.start(0);
+                
+            } catch (error) {
+                console.error('TTS chyba:', error);
+                isSpeaking = false;
+                hideStatus();
+            }
+        }
+
+        // ============================================
+        // AI RESPONSE
+        // ============================================
+        async function getAIResponse(userText) {
+            try {
+                console.log('Zpracovávám:', userText);
+                showStatus('Přemýšlím...');
+                
+                // Používám obyčejný endpoint místo stream
+                const response = await fetch(API + '/__ai__?prompt=' + encodeURIComponent(userText) + '&session=' + SESSION_ID);
+                const data = await response.json();
+                
+                console.log('Odpověď:', data.output);
+                await speak(data.output);
+                
+            } catch (error) {
+                console.error('Chyba:', error);
+                hideStatus();
+            }
+        }
+
+        // ============================================
+        // NAHRÁVÁNÍ HLASU
+        // ============================================
+        window.toggleRecording = async function() {
+            const btn = document.getElementById('mic-btn');
+            const indicator = document.getElementById('recording-indicator');
+            
+            if (!isRecording) {
+                try {
+                    // Инициализируем AudioContext при первом клике
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    chunks = [];
+                    
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    
+                    mediaRecorder.onstop = async () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        stream.getTracks().forEach(t => t.stop());
+                        
+                        indicator.classList.remove('active');
+                        btn.classList.remove('recording');
+                        
+                        await processAudio(blob);
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.classList.add('recording');
+                    indicator.classList.add('active');
+                    
+                } catch (err) {
+                    console.error('Mikrofon:', err);
+                    alert('Nelze získat přístup k mikrofonu');
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+            }
+        };
+
+        async function processAudio(blob) {
+            console.log('Zpracovávám audio...');
+            showStatus('Rozpoznávám řeč...');
+            
+            try {
+                const form = new FormData();
+                form.append('audio', blob, 'audio.webm');
+                
+                const sttResponse = await fetch(API + '/stt', {
+                    method: 'POST',
+                    body: form
+                });
+                const sttData = await sttResponse.json();
+                
+                if (sttData.error) {
+                    console.error('STT chyba:', sttData.error);
+                    hideStatus();
+                    return;
+                }
+                
+                console.log('Řekl jsi:', sttData.text);
+                await getAIResponse(sttData.text);
+                
+            } catch (error) {
+                console.error('Chyba:', error);
+                hideStatus();
+            }
+        }
+    </script>
+</body>
+</html>

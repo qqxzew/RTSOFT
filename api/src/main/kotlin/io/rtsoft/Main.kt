@@ -36,45 +36,50 @@ fun main() {
                 throw Exception("Flask endpoint not running")
             }
 
-            route("/") {
-                GET {
-                    val q =
-                        queries.entries.joinToString("&") { (key, value) ->
-                            "${URLEncoder.encode(key, StandardCharsets.UTF_8)}=" +
-                                    "${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
+            // ----------- SIGN UP WITH GOOGLE -----------
+            route("/__signup_google__") {
+                POST { req ->
+                    val body = req.parseBody<GoogleLoginRequest>().getOrNull()!!
+                    val googleUser = verifyGoogleIdToken(body.idToken, googleClientId) ?: return@POST buildResponse {
+                        headers["Content-Type"] = "application/json"
+                        status = 401
+                        this.body = """{"error":"invalid google token"}"""
+                    }
+
+                    val userId =
+                        transaction {
+                            val existing =
+                                Users.selectAll().where { Users.googleId eq googleUser.googleId }
+                                    .singleOrNull()
+
+                            if (existing != null) {
+                                // User already exists
+                                return@transaction null
+                            } else {
+                                Users.insert {
+                                    it[googleId] = googleUser.googleId
+                                    it[email] = googleUser.email
+                                }[Users.id]
+                            }
                         }
 
-                    val url = "http://localhost:3000/$q"
-                    return@GET fetch(url, it).getOrNull() ?: buildResponse {
+                    if (userId == null) {
+                        return@POST buildResponse {
+                            headers["Content-Type"] = "application/json"
+                            status = 409
+                            this.body = """{"error":"user already exists"}"""
+                        }
+                    }
+
+                    val token = createToken(googleUser.email)
+                    return@POST buildResponse {
                         headers["Content-Type"] = "application/json"
-                        status = 500
-                        body = """{"error":"React error"}"""
+                        this.body = AuthResponse(token).toJson().getOrNull()!!
                     }
                 }
             }
 
-            route("/chat") {
-                GET {
-                    return@GET ok(readResourceText(listResourcePaths("chat").first()))
-                }
-            }
-
-            route("/chat3d") {
-                GET {
-                    return@GET ok(readResourceText(listResourcePaths("chat3d").first()))
-                }
-            }
-
-            route("/brunette.glb") {
-                GET {
-                    val path = listResourcePaths("model").first()
-                    val bytes = this::class.java.getResource("/$path")!!.readBytes() // read as binary
-                    return@GET ok(bytes,
-                        mutableMapOf("Content-Type" to "model/gltf-binary"))
-                }
-            }
-
-            // ----------- SIGN IN WITH GOOGLE ONLY -----------
+            // ----------- SIGN IN WITH GOOGLE -----------
             route("/__signin_google__") {
                 POST { req ->
                     val body = req.parseBody<GoogleLoginRequest>().getOrNull()!!
@@ -133,7 +138,9 @@ fun main() {
                                     "${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
                         }
 
-                    val url = "http://localhost:5000/__ai__?$q"
+                    // Use flask container hostname
+                    val flaskUrl = System.getenv("FLASK_URL") ?: "http://flask:5000"
+                    val url = "$flaskUrl/__ai__?$q"
 
                     val aiResponse = fetch(url, req).getOrNull()
                     if (aiResponse != null) {

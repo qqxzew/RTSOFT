@@ -4,12 +4,14 @@ services:
     build:
       context: ./frontend
     ports:
-      - "3001:3000"
+      - "3000:3000"
     environment:
       - CHOKIDAR_USEPOLLING=true
-    command: npm start
+      - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - VITE_API_URL=http://localhost:8080
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - kotlin
       - flask
@@ -19,6 +21,10 @@ services:
       context: ./api
     ports:
       - "8080:8080"
+    environment:
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - FRONTEND_URL=http://react:3000
+      - FLASK_URL=http://flask:5000
     command: ./gradlew run
     volumes:
       - ./api:/app/api

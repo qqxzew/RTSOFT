@@ -1,70 +1,170 @@
-# Getting Started with Create React App
+# RTSoft – Školní kariérní poradce
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An intelligent web assistant helping students in 8th–9th grade choose their career path.
 
-## Available Scripts
+## 🎨 Design Features
 
-In the project directory, you can run:
+- **Ultra-premium UI** inspired by Apple, Notion, and Linear
+- **Glassmorphism** with blurred translucent surfaces
+- **Smooth animations** powered by Framer Motion
+- **Futuristic green accent** (#00FF9C)
+- **Parallax effects** and auto-typing animations
+- **Minimalistic white/gray** base with clean typography
 
-### `npm start`
+## 🚀 Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Framer Motion
+- React Router DOM
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📁 Project Structure
 
-### `npm test`
+```
+src/
+├── components/
+│   ├── GlassCard.tsx
+│   ├── GradientButton.tsx
+│   ├── TypingText.tsx
+│   ├── TimelineStep.tsx
+│   ├── ProfessionReveal.tsx
+│   └── HeroSection.tsx
+├── pages/
+│   ├── Landing.tsx
+│   ├── GoogleLogin.tsx
+│   ├── Onboarding.tsx
+│   ├── ProfessionRevealPage.tsx
+│   └── Roadmap.tsx
+├── App.tsx
+├── App.css
+├── index.css
+└── main.tsx
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🛠️ Setup & Installation
 
-### `npm run build`
+1. Install dependencies:
+```bash
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Run development server:
+```bash
+npm run dev
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+3. Build for production:
+```bash
+npm run build
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+4. Preview production build:
+```bash
+npm run preview
+```
 
-### `npm run eject`
+## 📱 Pages
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. **Landing Page** - Hero section with glassmorphic UI and parallax effects
+2. **Google Login** - Simulated authentication flow
+3. **Conversational Onboarding** - AI-powered dialogue to gather student information
+4. **Profession Reveal** - Dramatic reveal of recommended career path
+5. **Roadmap** - Personalized learning path with timeline
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## ✨ Key Components
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- **GlassCard** - Reusable glass-morphic card with animations
+- **GradientButton** - Premium buttons with glow effects
+- **TypingText** - Animated typing text component
+- **TimelineStep** - Learning path step with smooth transitions
+- **ProfessionReveal** - Dramatic profession reveal with particle effects
+- **HeroSection** - Landing page hero with parallax
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🎯 Features
 
-## Learn More
+- No backend required (fully local)
+- Mock data for demonstration
+- Smooth page transitions
+- Responsive design
+- Premium animations
+- Clean, maintainable code
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🌈 Color Palette
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Primary: `#00FF9C` (Futuristic Green)
+- Primary Dark: `#00CC7D`
+- Glass White: `rgba(255, 255, 255, 0.7)`
+- Glass Border: `rgba(255, 255, 255, 0.18)`
 
-### Code Splitting
+## 📄 License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+MIT
 
-### Analyzing the Bundle Size
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## React Compiler
 
-### Making a Progressive Web App
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Expanding the ESLint configuration
 
-### Advanced Configuration
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-### Deployment
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
 
-### `npm run build` fails to minify
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
+# Undefined_project
