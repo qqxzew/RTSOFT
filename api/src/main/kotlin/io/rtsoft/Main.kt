@@ -7,15 +7,12 @@ import io.voidx.Method
 import io.voidx.dto.buildRequest
 import io.voidx.dto.buildResponse
 import io.voidx.dto.emptyResponse
-import io.voidx.dto.ok
 import io.voidx.fetch
 import io.voidx.json.parseBody
 import io.voidx.json.toJson
 import io.voidx.middleware.relayAfter
 import io.voidx.page.notFoundPage
-import io.voidx.router.listResourcePaths
 import io.voidx.simpleServer
-import io.voidx.util.readResourceText
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -68,7 +65,7 @@ fun main() {
                             } else {
                                 Users.insert {
                                     it[googleId] = googleUser.googleId
-                                    it[email] = googleUser.email
+                                    it[username] = googleUser.username
                                 }[Users.id]
                             }
                         }
@@ -81,10 +78,10 @@ fun main() {
                         }
                     }
 
-                    val token = createToken(googleUser.email)
+                    val token = createToken(googleUser.username) // or keep email for token claims if needed
                     return@POST buildResponse {
                         headers["Content-Type"] = "application/json"
-                        this.body = AuthResponse(token).toJson().getOrNull()!!
+                        this.body = AuthResponse(token, googleUser.username).toJson().getOrNull()!!
                     }
                 }
                 OPTIONS { req ->
@@ -119,15 +116,15 @@ fun main() {
                             } else {
                                 Users.insert {
                                     it[googleId] = googleUser.googleId
-                                    it[email] = googleUser.email
+                                    it[username] = googleUser.username
                                 }[Users.id]
                             }
                         }
 
-                    val token = createToken(googleUser.email)
+                    val token = createToken(googleUser.username) // or keep email for token claims if needed
                     return@POST buildResponse {
                         headers["Content-Type"] = "application/json"
-                        this.body = AuthResponse(token).toJson().getOrNull()!!
+                        this.body = AuthResponse(token, googleUser.username).toJson().getOrNull()!!
                     }
                 }
                 OPTIONS { req ->

@@ -19,9 +19,11 @@ export const Auth = () => {
     const onboardingComplete = localStorage.getItem("onboardingComplete");
 
     if (isAuthenticated && onboardingComplete) {
-      return <Navigate to="/" replace />;
+      navigate("/", { replace: true });
+      return;
     } else if (isAuthenticated && !onboardingComplete) {
-      return <Navigate to="/ai-onboarding" replace />;
+      navigate("/ai-onboarding", { replace: true });
+      return;
     }
 
     if (!credentialResponse.credential) {

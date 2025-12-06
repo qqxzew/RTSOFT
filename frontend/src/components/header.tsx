@@ -20,7 +20,7 @@ const Header: React.FC<{}> = () => {
   useEffect(() => {
     const checkAuth = () => {
       const authenticated = apiService.isAuthenticated();
-      const name = localStorage.getItem("username");
+      const name = localStorage.getItem("authUsername");
       setIsLoggedIn(authenticated);
       setUserName(name || "User");
     };

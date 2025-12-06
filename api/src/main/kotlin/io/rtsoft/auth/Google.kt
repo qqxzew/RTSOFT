@@ -6,7 +6,7 @@ import com.google.api.client.json.gson.GsonFactory
 
 data class GoogleUser(
     val googleId: String,
-    val email: String,
+    val username: String,  // <-- store username here
 )
 
 fun verifyGoogleIdToken(idTokenString: String, clientId: String): GoogleUser? {
@@ -18,8 +18,11 @@ fun verifyGoogleIdToken(idTokenString: String, clientId: String): GoogleUser? {
     val idToken = verifier.verify(idTokenString) ?: return null
     val payload = idToken.payload
 
+    // Extract the username (display name)
+    val username = payload["name"] as? String ?: "Unknown"
+
     return GoogleUser(
         googleId = payload.subject,
-        email = payload.email,
+        username = username
     )
 }

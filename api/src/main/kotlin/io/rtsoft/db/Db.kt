@@ -8,7 +8,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 object Users : Table("users") {
     val id = integer("id").autoIncrement()
     val googleId = varchar("google_id", 100).uniqueIndex()
-    val email = varchar("email", 150).uniqueIndex()
+    val username = varchar("username", 150).uniqueIndex()
 
     override val primaryKey = PrimaryKey(id)
 }

@@ -7,29 +7,39 @@ export interface GoogleLoginRequest {
 
 export interface AuthResponse {
   token: string;
+  username: string; // store Google username
 }
 
 class ApiService {
   private token: string | null = null;
+  private username: string | null = null;
 
   constructor() {
     this.token = localStorage.getItem("authToken");
+    this.username = localStorage.getItem("authUsername");
   }
 
-  setToken(token: string) {
+  setToken(token: string, username: string) {
     this.token = token;
+    this.username = username;
     localStorage.setItem("authToken", token);
+    localStorage.setItem("authUsername", username);
   }
 
   getToken(): string | null {
     return this.token;
   }
 
+  getUsername(): string | null {
+    return this.username;
+  }
+
   clearToken() {
     this.token = null;
+    this.username = null;
     localStorage.removeItem("authToken");
+    localStorage.removeItem("authUsername");
     localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("username");
   }
 
   async signInWithGoogle(idToken: string): Promise<AuthResponse> {
@@ -47,7 +57,7 @@ class ApiService {
     }
 
     const data: AuthResponse = await response.json();
-    this.setToken(data.token);
+    this.setToken(data.token, data.username);
     return data;
   }
 
@@ -66,7 +76,7 @@ class ApiService {
     }
 
     const data: AuthResponse = await response.json();
-    this.setToken(data.token);
+    this.setToken(data.token, data.username);
     return data;
   }
 
