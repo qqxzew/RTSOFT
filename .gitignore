@@ -1,1 +1,7 @@
 .env
+./frontend/node_modules
+./api/.gradle
+./api/build
+./api/.kotlin
+.idea
+*.iml
