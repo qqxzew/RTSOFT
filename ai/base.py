@@ -11,7 +11,7 @@ import json
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["http://localhost:3000", "http://localhost:8080"], supports_credentials=True)
 
 _client = None
 _schools_db = None

@@ -3,6 +3,7 @@ package io.rtsoft
 import io.rtsoft.auth.*
 import io.rtsoft.db.Users
 import io.rtsoft.db.initDb
+import io.voidx.Method
 import io.voidx.dto.buildRequest
 import io.voidx.dto.buildResponse
 import io.voidx.dto.emptyResponse
@@ -10,6 +11,8 @@ import io.voidx.dto.ok
 import io.voidx.fetch
 import io.voidx.json.parseBody
 import io.voidx.json.toJson
+import io.voidx.middleware.relayAfter
+import io.voidx.page.notFoundPage
 import io.voidx.router.listResourcePaths
 import io.voidx.simpleServer
 import io.voidx.util.readResourceText
@@ -27,6 +30,13 @@ fun main() {
 
     val server =
         simpleServer {
+            +relayAfter { res ->
+                val response = res.getOrNull()
+                response?.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+                response?.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+                response?.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+            }
+
             if (
                 fetch(
                     "http://flask:5000/",
@@ -77,6 +87,15 @@ fun main() {
                         this.body = AuthResponse(token).toJson().getOrNull()!!
                     }
                 }
+                OPTIONS { req ->
+                    buildResponse {
+                        headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+                        headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+                        headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+                        status = 200
+                        body = ""
+                    }
+                }
             }
 
             // ----------- SIGN IN WITH GOOGLE -----------
@@ -109,6 +128,15 @@ fun main() {
                     return@POST buildResponse {
                         headers["Content-Type"] = "application/json"
                         this.body = AuthResponse(token).toJson().getOrNull()!!
+                    }
+                }
+                OPTIONS { req ->
+                    buildResponse {
+                        headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+                        headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+                        headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+                        status = 200
+                        body = ""
                     }
                 }
             }
@@ -153,6 +181,27 @@ fun main() {
                         body = """{"error":"AI backend error"}"""
                     }
                 }
+                OPTIONS { req ->
+                    buildResponse {
+                        headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+                        headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+                        headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+                        status = 200
+                        body = ""
+                    }
+                }
             }
+
+            route(notFoundPage {
+                return@notFoundPage if (request.method == Method.OPTIONS) {
+                    buildResponse {
+                        headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+                        headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+                        headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+                        status = 200
+                        body = ""
+                    }
+                } else emptyResponse()
+            })
         }
 }
