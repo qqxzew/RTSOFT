@@ -66,12 +66,12 @@ export const RoadmapPage = () => {
         }, 1500);
     };
 
+
     const getRoadmapForCareer = (career: string): RoadmapNode[] => {
-        if (
-            career.toLowerCase().includes("software") ||
-            career.toLowerCase().includes("it") ||
-            career.toLowerCase().includes("programov")
-        ) {
+        const c = career.toLowerCase();
+        setCompletedNodes(new Set());
+
+        if (c.includes("software") || c.includes("it") || c.includes("programov")) {
             return [
                 {
                     id: "basics",
@@ -96,8 +96,9 @@ export const RoadmapPage = () => {
                     connections: ["fullstack", "advanced-frontend"],
                     estimatedTime: "3-4 měsíce",
                     resources: [
-                        { name: "React dokumentace", url: "https://reactjs.org/docs/getting-started.html" },
+                        { name: "React Docs", url: "https://reactjs.org/docs/getting-started.html" },
                         { name: "TypeScript Handbook", url: "https://www.typescriptlang.org/docs/" },
+                        { name: "Tailwind CSS Guide", url: "https://tailwindcss.com/docs" },
                     ],
                 },
                 {
@@ -109,8 +110,9 @@ export const RoadmapPage = () => {
                     connections: ["fullstack", "databases"],
                     estimatedTime: "3-4 měsíce",
                     resources: [
-                        { name: "Node.js docs", url: "https://nodejs.org/en/docs/" },
-                        { name: "PostgreSQL tutoriály", url: "https://www.postgresql.org/docs/" },
+                        { name: "Node.js Docs", url: "https://nodejs.org/en/docs/" },
+                        { name: "Express Guide", url: "https://expressjs.com/en/starter/installing.html" },
+                        { name: "PostgreSQL Docs", url: "https://www.postgresql.org/docs/" },
                     ],
                 },
                 {
@@ -121,6 +123,11 @@ export const RoadmapPage = () => {
                     category: "intermediate",
                     connections: ["fullstack"],
                     estimatedTime: "2 měsíce",
+                    resources: [
+                        { name: "SQL Tutorial", url: "https://www.w3schools.com/sql/" },
+                        { name: "Prisma Docs", url: "https://www.prisma.io/docs/" },
+                        { name: "TypeORM Docs", url: "https://typeorm.io/" },
+                    ],
                 },
                 {
                     id: "fullstack",
@@ -129,7 +136,10 @@ export const RoadmapPage = () => {
                     icon: <Briefcase className="w-6 h-6" />,
                     category: "advanced",
                     connections: ["devops", "portfolio"],
-                    estimatedTime: "4-6 měsíců",
+                    estimatedTime: "4-6 měsíce",
+                    resources: [
+                        { name: "Fullstack Tutorial", url: "https://www.fullstackopen.com/en/" },
+                    ],
                 },
                 {
                     id: "advanced-frontend",
@@ -139,6 +149,10 @@ export const RoadmapPage = () => {
                     category: "advanced",
                     connections: ["portfolio"],
                     estimatedTime: "2-3 měsíce",
+                    resources: [
+                        { name: "Next.js Docs", url: "https://nextjs.org/docs" },
+                        { name: "React Testing Library", url: "https://testing-library.com/docs/react-testing-library/intro/" },
+                    ],
                 },
                 {
                     id: "devops",
@@ -148,6 +162,11 @@ export const RoadmapPage = () => {
                     category: "advanced",
                     connections: ["portfolio"],
                     estimatedTime: "2 měsíce",
+                    resources: [
+                        { name: "Docker Docs", url: "https://docs.docker.com/" },
+                        { name: "GitHub Actions", url: "https://docs.github.com/en/actions" },
+                        { name: "AWS Docs", url: "https://aws.amazon.com/documentation/" },
+                    ],
                 },
                 {
                     id: "portfolio",
@@ -157,11 +176,16 @@ export const RoadmapPage = () => {
                     category: "expert",
                     connections: [],
                     estimatedTime: "1-2 měsíce",
+                    resources: [
+                        { name: "GitHub", url: "https://github.com/" },
+                        { name: "LinkedIn", url: "https://www.linkedin.com/" },
+                        { name: "Resume Tips", url: "https://novoresume.com/career-blog/resume-tips" },
+                    ],
                 },
             ];
         }
 
-        if (career.toLowerCase().includes("design") || career.toLowerCase().includes("grafick")) {
+        if (c.includes("design") || c.includes("grafick")) {
             return [
                 {
                     id: "design-basics",
@@ -171,6 +195,10 @@ export const RoadmapPage = () => {
                     category: "foundation",
                     connections: ["tools", "ui-ux"],
                     estimatedTime: "2 měsíce",
+                    resources: [
+                        { name: "Canva Design School", url: "https://www.canva.com/learn/design/" },
+                        { name: "The Futur", url: "https://www.thefutur.com/" },
+                    ],
                 },
                 {
                     id: "tools",
@@ -180,6 +208,11 @@ export const RoadmapPage = () => {
                     category: "foundation",
                     connections: ["ui-ux", "branding"],
                     estimatedTime: "2-3 měsíce",
+                    resources: [
+                        { name: "Figma Docs", url: "https://help.figma.com/hc/en-us" },
+                        { name: "Adobe XD Tutorials", url: "https://helpx.adobe.com/xd/tutorials.html" },
+                        { name: "Illustrator Guide", url: "https://helpx.adobe.com/illustrator/tutorials.html" },
+                    ],
                 },
                 {
                     id: "ui-ux",
@@ -189,6 +222,10 @@ export const RoadmapPage = () => {
                     category: "intermediate",
                     connections: ["advanced-design"],
                     estimatedTime: "3-4 měsíce",
+                    resources: [
+                        { name: "NNGroup UX Articles", url: "https://www.nngroup.com/articles/" },
+                        { name: "UX Collective", url: "https://uxdesign.cc/" },
+                    ],
                 },
                 {
                     id: "branding",
@@ -198,6 +235,9 @@ export const RoadmapPage = () => {
                     category: "intermediate",
                     connections: ["advanced-design"],
                     estimatedTime: "2 měsíce",
+                    resources: [
+                        { name: "Branding Basics", url: "https://www.canva.com/learn/branding/" },
+                    ],
                 },
                 {
                     id: "advanced-design",
@@ -206,7 +246,10 @@ export const RoadmapPage = () => {
                     icon: <Briefcase className="w-6 h-6" />,
                     category: "advanced",
                     connections: ["portfolio-design"],
-                    estimatedTime: "4-6 měsíců",
+                    estimatedTime: "4-6 měsíce",
+                    resources: [
+                        { name: "Case Study Guide", url: "https://www.smashingmagazine.com/2018/01/design-case-study/" },
+                    ],
                 },
                 {
                     id: "portfolio-design",
@@ -216,10 +259,191 @@ export const RoadmapPage = () => {
                     category: "expert",
                     connections: [],
                     estimatedTime: "2 měsíce",
+                    resources: [
+                        { name: "Behance", url: "https://www.behance.net/" },
+                        { name: "Dribbble", url: "https://dribbble.com/" },
+                    ],
                 },
             ];
         }
 
+        if (c.includes("business")) {
+            return [
+                {
+                    id: "business-basics",
+                    title: "Business Fundamentals",
+                    description: "Základy ekonomie a obchodní analýzy",
+                    icon: <BookOpen className="w-6 h-6" />,
+                    category: "foundation",
+                    connections: ["data-analysis", "tools-business"],
+                    estimatedTime: "2 měsíce",
+                    resources: [
+                        { name: "Coursera Business Fundamentals", url: "https://www.coursera.org/specializations/wharton-business-foundations" },
+                        { name: "Khan Academy Economics", url: "https://www.khanacademy.org/economics-finance-domain" },
+                    ],
+                },
+                {
+                    id: "data-analysis",
+                    title: "Data Analysis",
+                    description: "Excel, SQL, Power BI",
+                    icon: <Code className="w-6 h-6" />,
+                    category: "intermediate",
+                    connections: ["modeling", "visualization"],
+                    estimatedTime: "3 měsíce",
+                    resources: [
+                        { name: "SQL Tutorial", url: "https://www.w3schools.com/sql/" },
+                        { name: "Power BI Guide", url: "https://learn.microsoft.com/en-us/power-bi/" },
+                    ],
+                },
+                {
+                    id: "tools-business",
+                    title: "Business Tools",
+                    description: "Jira, Confluence, Tableau",
+                    icon: <Zap className="w-6 h-6" />,
+                    category: "intermediate",
+                    connections: ["project-management"],
+                    estimatedTime: "2 měsíce",
+                    resources: [
+                        { name: "Tableau Docs", url: "https://help.tableau.com/current/guides/e-learning/en-us/tableau_elearning.htm" },
+                        { name: "Jira Guide", url: "https://www.atlassian.com/software/jira/guides" },
+                    ],
+                },
+                {
+                    id: "project-management",
+                    title: "Project Management",
+                    description: "Agile, Scrum, Kanban",
+                    icon: <Briefcase className="w-6 h-6" />,
+                    category: "advanced",
+                    connections: ["portfolio-business"],
+                    estimatedTime: "3 měsíce",
+                    resources: [
+                        { name: "Scrum Guide", url: "https://scrumguides.org/" },
+                    ],
+                },
+                {
+                    id: "portfolio-business",
+                    title: "Portfolio & Career",
+                    description: "Business case studies, consulting projects",
+                    icon: <GraduationCap className="w-6 h-6" />,
+                    category: "expert",
+                    connections: [],
+                    estimatedTime: "2 měsíce",
+                    resources: [
+                        { name: "Consulting Portfolio Tips", url: "https://www.managementconsulted.com/consulting-case-study-prep/" },
+                    ],
+                },
+            ];
+        }
+
+        if (c.includes("vědecký") || c.includes("science")) {
+            return [
+                {
+                    id: "science-basics",
+                    title: "Science Fundamentals",
+                    description: "Matematika, fyzika, chemie, biologie",
+                    icon: <BookOpen className="w-6 h-6" />,
+                    category: "foundation",
+                    connections: ["research-methods"],
+                    estimatedTime: "2-3 měsíce",
+                    resources: [
+                        { name: "Khan Academy Science", url: "https://www.khanacademy.org/science" },
+                        { name: "Coursera Science Courses", url: "https://www.coursera.org/browse/physical-science-and-engineering" },
+                    ],
+                },
+                {
+                    id: "research-methods",
+                    title: "Research Methods",
+                    description: "Experiment design, data collection, statistics",
+                    icon: <Target className="w-6 h-6" />,
+                    category: "intermediate",
+                    connections: ["specialization"],
+                    estimatedTime: "3 měsíce",
+                    resources: [
+                        { name: "Research Methods Guide", url: "https://libguides.usc.edu/writingguide/researchmethods" },
+                    ],
+                },
+                {
+                    id: "specialization",
+                    title: "Specialization",
+                    description: "Vybraná oblast vědy, laboratorní práce",
+                    icon: <Zap className="w-6 h-6" />,
+                    category: "advanced",
+                    connections: ["portfolio-science"],
+                    estimatedTime: "4-6 měsíce",
+                    resources: [
+                        { name: "Specialized Journals", url: "https://www.sciencedirect.com/" },
+                    ],
+                },
+                {
+                    id: "portfolio-science",
+                    title: "Portfolio & Career",
+                    description: "Publikace, konference, networking",
+                    icon: <GraduationCap className="w-6 h-6" />,
+                    category: "expert",
+                    connections: [],
+                    estimatedTime: "2-3 měsíce",
+                    resources: [
+                        { name: "ResearchGate", url: "https://www.researchgate.net/" },
+                    ],
+                },
+            ];
+        }
+
+        if (c.includes("health") || c.includes("medical") || c.includes("lékař")) {
+            return [
+                {
+                    id: "medical-basics",
+                    title: "Medical Fundamentals",
+                    description: "Anatomie, fyziologie, biochemie",
+                    icon: <BookOpen className="w-6 h-6" />,
+                    category: "foundation",
+                    connections: ["clinical-skills"],
+                    estimatedTime: "6 měsíců",
+                    resources: [
+                        { name: "Khan Academy Health", url: "https://www.khanacademy.org/science/health-and-medicine" },
+                        { name: "MedlinePlus", url: "https://medlineplus.gov/" },
+                    ],
+                },
+                {
+                    id: "clinical-skills",
+                    title: "Clinical Skills",
+                    description: "Základy péče o pacienta, diagnostika",
+                    icon: <Zap className="w-6 h-6" />,
+                    category: "intermediate",
+                    connections: ["specialization-medical"],
+                    estimatedTime: "1 rok",
+                    resources: [
+                        { name: "BMJ Learning", url: "https://learning.bmj.com/" },
+                    ],
+                },
+                {
+                    id: "specialization-medical",
+                    title: "Specialization",
+                    description: "Vybraná medicínská specializace",
+                    icon: <Briefcase className="w-6 h-6" />,
+                    category: "advanced",
+                    connections: ["portfolio-medical"],
+                    estimatedTime: "1-2 roky",
+                    resources: [
+                        { name: "Specialty Societies", url: "https://www.ama-assn.org/education/specialty-education-resources" },
+                    ],
+                },
+                {
+                    id: "portfolio-medical",
+                    title: "Portfolio & Career",
+                    description: "Praxe, konference, certifikace",
+                    icon: <GraduationCap className="w-6 h-6" />,
+                    category: "expert",
+                    connections: [],
+                    estimatedTime: "6-12 měsíců",
+                    resources: [
+                        { name: "LinkedIn", url: "https://www.linkedin.com/" },
+                    ],
+                },
+            ];
+        }
+
+        // Fallback generic roadmap
         return [
             {
                 id: "foundation",
@@ -229,6 +453,9 @@ export const RoadmapPage = () => {
                 category: "foundation",
                 connections: ["learning"],
                 estimatedTime: "4 roky",
+                resources: [
+                    { name: "Coursera Basics", url: "https://www.coursera.org/" },
+                ],
             },
             {
                 id: "learning",
@@ -238,6 +465,10 @@ export const RoadmapPage = () => {
                 category: "intermediate",
                 connections: ["experience"],
                 estimatedTime: "1-2 roky",
+                resources: [
+                    { name: "Udemy Courses", url: "https://www.udemy.com/" },
+                    { name: "edX", url: "https://www.edx.org/" },
+                ],
             },
             {
                 id: "experience",
@@ -247,6 +478,9 @@ export const RoadmapPage = () => {
                 category: "advanced",
                 connections: ["career"],
                 estimatedTime: "1-2 roky",
+                resources: [
+                    { name: "Internship Guide", url: "https://www.internships.com/" },
+                ],
             },
             {
                 id: "career",
@@ -256,9 +490,13 @@ export const RoadmapPage = () => {
                 category: "expert",
                 connections: [],
                 estimatedTime: "6-12 měsíců",
+                resources: [
+                    { name: "LinkedIn", url: "https://www.linkedin.com/" },
+                ],
             },
         ];
     };
+
 
     const toggleNodeCompletion = (nodeId: string) => {
         const newCompleted = new Set(completedNodes);
