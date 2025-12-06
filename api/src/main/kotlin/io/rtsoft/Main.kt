@@ -5,10 +5,13 @@ import io.rtsoft.db.Users
 import io.rtsoft.db.initDb
 import io.voidx.dto.buildRequest
 import io.voidx.dto.buildResponse
+import io.voidx.dto.ok
 import io.voidx.fetch
 import io.voidx.json.parseBody
 import io.voidx.json.toJson
+import io.voidx.router.listResourcePaths
 import io.voidx.simpleServer
+import io.voidx.util.readResourceText
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -30,6 +33,27 @@ fun main() {
                 ).getOrNull()?.status != 200
             ) {
                 throw Exception("Flask endpoint not running")
+            }
+
+            route("/chat") {
+                GET {
+                    return@GET ok(readResourceText(listResourcePaths("chat").first()))
+                }
+            }
+
+            route("/chat3d") {
+                GET {
+                    return@GET ok(readResourceText(listResourcePaths("chat3d").first()))
+                }
+            }
+
+            route("/brunette.glb") {
+                GET {
+                    val path = listResourcePaths("model").first()
+                    val bytes = this::class.java.getResource("/$path")!!.readBytes() // read as binary
+                    return@GET ok(bytes,
+                        mutableMapOf("Content-Type" to "model/gltf-binary"))
+                }
             }
 
             // ----------- SIGN IN WITH GOOGLE ONLY -----------

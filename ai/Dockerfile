@@ -10,7 +10,8 @@ RUN pip install --no-cache-dir \
     flask \
     python-dotenv \
     openai \
-    requests
+    requests \
+    flask_cors
 
 # Expose Flask port
 EXPOSE 5000

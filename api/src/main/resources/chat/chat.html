@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Hlasový chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #messages {
+            height: 400px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .user { color: blue; margin-bottom: 10px; }
+        .bot { color: green; margin-bottom: 10px; }
+        button {
+            width: 100%;
+            padding: 20px;
+            font-size: 20px;
+            cursor: pointer;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+        }
+        .recording { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🎤 Hlasový chat</h1>
+    <div id="messages"></div>
+    <button id="btn" onclick="toggleRecording()">🎤 Mluv</button>
+
+    <script>
+        const API = 'http://localhost:5000';
+        let mediaRecorder;
+        let chunks = [];
+        let isRecording = false;
+
+        function addMessage(text, role) {
+            const div = document.createElement('div');
+            div.className = role;
+            div.innerHTML = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        async function toggleRecording() {
+            if (!isRecording) {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                chunks = [];
+
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    sendAudio(blob);
+                    stream.getTracks().forEach(t => t.stop());
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                btn.textContent = '⏹ Stop';
+                btn.className = 'recording';
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                btn.textContent = '🎤 Mluv';
+                btn.className = '';
+            }
+        }
+
+        async function sendAudio(blob) {
+            addMessage('<b>Ty:</b> ...', 'user');
+
+            // 1. STT
+            const form = new FormData();
+            form.append('audio', blob, 'audio.webm');
+            const stt = await fetch(API + '/stt', { method: 'POST', body: form });
+            const { text } = await stt.json();
+
+            // Ukaž co řekl
+            messages.lastChild.innerHTML = '<b>Ty:</b> ' + text;
+
+            // 2. GPT
+            addMessage('<b>Bot:</b> Přemýšlím...', 'bot');
+            const ai = await fetch(API + '/__ai__?prompt=' + encodeURIComponent(text));
+            const { output } = await ai.json();
+
+            messages.lastChild.innerHTML = '<b>Bot:</b> ' + output;
+        }
+    </script>
+</body>
+</html>
