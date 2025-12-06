@@ -18,14 +18,13 @@
             position: relative;
         }
         
-        /* Кнопки внизу */
         .controls {
             position: absolute;
             bottom: 40px;
             width: 100%;
             display: flex;
             justify-content: space-between;
-            padding: 0 30%;  /* Ещё ближе к центру */
+            padding: 0 30%;
             pointer-events: none;
         }
         
@@ -41,7 +40,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         
-        /* Микрофон (слева) */
         #mic-btn {
             background: #28a745;
             color: white;
@@ -55,7 +53,6 @@
             animation: pulse 1.5s infinite;
         }
         
-        /* Крестик (справа) */
         #close-btn {
             background: #dc3545;
             color: white;
@@ -70,7 +67,6 @@
             50% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); }
         }
         
-        /* Индикатор записи */
         #recording-indicator {
             position: absolute;
             top: 30px;
@@ -124,11 +120,27 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        #status {
+            position: absolute;
+            bottom: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #status.active {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div id="scene-container">
-        <!-- Индикатор записи -->
         <div id="recording-indicator">
             <div class="rec-dot"></div>
             <span>Nahrávám...</span>
@@ -139,56 +151,53 @@
             Načítání...
         </div>
         
-        <!-- Кнопки управления -->
+        <div id="status"></div>
+        
         <div class="controls">
             <button id="mic-btn" onclick="toggleRecording()">🎤</button>
             <button id="close-btn" onclick="closeApp()">✕</button>
         </div>
     </div>
 
-    <!-- Three.js + GLTFLoader -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
-        // ============================================
-        // KONFIGURACE
-        // ============================================
-        const API = 'http://localhost:5001';
-        const AVATAR_FILE = '/brunette.glb';  // Tvůj GLB soubor
+        const API = 'http://localhost:5000';
+        const AVATAR_FILE = 'brunette.glb';
+        const SESSION_ID = 'session_' + Date.now();
         
-        // ============================================
-        // GLOBÁLNÍ PROMĚNNÉ
-        // ============================================
         let model = null;
         let mixer = null;
-        let morphMeshes = [];  // Meshe s morph targets (pro animaci úst)
+        let morphMeshes = [];
         let isSpeaking = false;
         let mouthOpenValue = 0;
-        let targetMouthValue = 0;
         
-        // Audio analyzer для реалистичной анимации рта
         let audioContext = null;
         let analyser = null;
         let dataArray = null;
         
-        // Анимация глаз и головы
         let blinkTimer = 0;
         let nextBlinkTime = 3;
-        let headRotation = { x: 0, y: 0 };
         
         let mediaRecorder = null;
         let chunks = [];
         let isRecording = false;
         
-        // Закрыть приложение
+        function showStatus(text) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.classList.add('active');
+        }
+        
+        function hideStatus() {
+            document.getElementById('status').classList.remove('active');
+        }
+        
         window.closeApp = function() {
             if (confirm('Ukončit aplikaci?')) {
                 window.close();
-                // Если не закрылось (браузер блокирует) - показываем сообщение
-                setTimeout(() => {
-                    alert('Zavřete kartu prohlížeče ručně');
-                }, 100);
+                setTimeout(() => alert('Zavřete kartu ručně'), 100);
             }
         };
 
@@ -198,17 +207,10 @@
         const container = document.getElementById('scene-container');
         const scene = new THREE.Scene();
         
-        // Kamera - zaměřená na obličej
-        const camera = new THREE.PerspectiveCamera(
-            30, 
-            container.clientWidth / container.clientHeight, 
-            0.1, 
-            1000
-        );
-        camera.position.set(0, 1.5, 1.2);  // Отдалил камеру
+        const camera = new THREE.PerspectiveCamera(30, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 1.5, 1.2);
         camera.lookAt(0, 1.5, 0);
 
-        // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -217,10 +219,8 @@
         renderer.toneMappingExposure = 1;
         container.appendChild(renderer.domElement);
 
-        // Světla
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        
         const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
         keyLight.position.set(1, 2, 2);
         scene.add(keyLight);
@@ -244,7 +244,6 @@
                 model.position.set(0, 0, 0);
                 scene.add(model);
 
-                // Najdi všechny meshe s morph targets
                 model.traverse((child) => {
                     if (child.isMesh && child.morphTargetInfluences && child.morphTargetDictionary) {
                         morphMeshes.push(child);
@@ -253,7 +252,6 @@
                     }
                 });
 
-                // Animace pokud existují
                 if (gltf.animations && gltf.animations.length > 0) {
                     mixer = new THREE.AnimationMixer(model);
                     const idleAnim = gltf.animations.find(a => 
@@ -261,54 +259,42 @@
                     ) || gltf.animations[0];
                     
                     if (idleAnim) {
-                        const action = mixer.clipAction(idleAnim);
-                        action.play();
+                        mixer.clipAction(idleAnim).play();
                     }
                 }
 
                 document.getElementById('loading').style.display = 'none';
-                console.log('Model načten úspěšně!');
+                console.log('Model načten!');
             },
             function(xhr) {
                 const percent = Math.round(xhr.loaded / xhr.total * 100);
                 document.getElementById('loading').innerHTML = 
-                    `<div class="spinner"></div>Načítání... ${percent}%`;
+                    '<div class="spinner"></div>Načítání... ' + percent + '%';
             },
             function(error) {
                 console.error('Chyba:', error);
                 document.getElementById('loading').innerHTML = 
-                    `❌ Chyba načítání<br><small>Vlož ${AVATAR_FILE} do stejné složky</small>`;
+                    'Chyba načítání<br><small>Vlož ' + AVATAR_FILE + ' do stejné složky</small>';
             }
         );
 
         // ============================================
         // ANIMACE ÚST (MORPH TARGETS)
         // ============================================
-        
-        // Možné názvy morph targets pro otevření úst
         const MOUTH_MORPH_NAMES = [
-            'mouthOpen',
-            'jawOpen', 
-            'viseme_aa',
-            'viseme_O',
-            'viseme_U',
-            'A',
-            'O',
-            'MouthOpen'
+            'mouthOpen', 'jawOpen', 'viseme_aa', 'viseme_O', 'viseme_U', 'A', 'O', 'MouthOpen'
         ];
 
         function setMouthOpen(value) {
             morphMeshes.forEach(mesh => {
                 const dict = mesh.morphTargetDictionary;
                 
-                // Zkus najít morph target pro ústa
                 for (const name of MOUTH_MORPH_NAMES) {
                     if (dict[name] !== undefined) {
                         mesh.morphTargetInfluences[dict[name]] = value;
                     }
                 }
                 
-                // Oculus visemes - kombinuj pro realističtější efekt
                 if (dict['viseme_aa'] !== undefined) {
                     mesh.morphTargetInfluences[dict['viseme_aa']] = value * 0.7;
                 }
@@ -318,25 +304,16 @@
             });
         }
 
-        // Анимация рта - с анализом громкости
         function animateMouth() {
             if (isSpeaking && analyser && dataArray) {
-                // Анализируем громкость аудио
                 analyser.getByteFrequencyData(dataArray);
                 const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length / 255;
-                
-                // Целевое значение открытия рта = громкость (усиленная)
                 const target = Math.min(volume * 3.0, 0.9);
-                
-                // Плавный переход
                 mouthOpenValue += (target - mouthOpenValue) * 0.35;
-                
             } else if (isSpeaking) {
-                // Фолбэк если нет анализатора - случайная анимация
                 const target = 0.3 + Math.random() * 0.5;
                 mouthOpenValue += (target - mouthOpenValue) * 0.3;
             } else {
-                // Закрыть рот
                 mouthOpenValue *= 0.85;
                 if (mouthOpenValue < 0.01) mouthOpenValue = 0;
             }
@@ -344,15 +321,13 @@
             setMouthOpen(mouthOpenValue);
         }
         
-        // Моргание глаз
-        function animateBlink() {
-            blinkTimer += clock.getDelta();
+        function animateBlink(delta) {
+            blinkTimer += delta;
             
             if (blinkTimer > nextBlinkTime) {
                 blinkTimer = 0;
-                nextBlinkTime = 2 + Math.random() * 4;  // Каждые 2-6 секунд
+                nextBlinkTime = 2 + Math.random() * 4;
                 
-                // Быстрое моргание
                 morphMeshes.forEach(mesh => {
                     const dict = mesh.morphTargetDictionary;
                     const influences = mesh.morphTargetInfluences;
@@ -360,9 +335,7 @@
                     ['eyesClosed', 'eyeBlinkLeft', 'eyeBlinkRight', 'eyeBlink'].forEach(name => {
                         if (dict[name] !== undefined) {
                             influences[dict[name]] = 1.0;
-                            setTimeout(() => {
-                                influences[dict[name]] = 0;
-                            }, 120);  // 120мс
+                            setTimeout(() => { influences[dict[name]] = 0; }, 120);
                         }
                     });
                 });
@@ -381,9 +354,8 @@
             
             if (mixer) mixer.update(delta);
             animateMouth();
-            animateBlink();
+            animateBlink(delta);
             
-            // Покачивание головы при разговоре
             if (model && isSpeaking) {
                 model.rotation.y = Math.sin(Date.now() * 0.002) * 0.03;
                 model.rotation.x = Math.sin(Date.now() * 0.0015) * 0.015;
@@ -396,7 +368,6 @@
         }
         animate();
 
-        // Resize
         window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
@@ -404,19 +375,30 @@
         });
 
         // ============================================
-        // TEXT-TO-SPEECH с Audio Analyzer
+        // TEXT-TO-SPEECH (ИСПРАВЛЕННЫЙ)
         // ============================================
         async function speak(text) {
+            if (!text || text.trim().length === 0) return;
+            
+            console.log('Говорю:', text);
+            showStatus('Mluvím...');
+            
             try {
-                // Инициализируем AudioContext один раз
+                // Инициализируем AudioContext
                 if (!audioContext) {
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    analyser = audioContext.createAnalyser();
-                    analyser.fftSize = 256;
-                    dataArray = new Uint8Array(analyser.frequencyBinCount);
                 }
                 
-                // Получаем аудио
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                
+                // Создаём analyser
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                // Получаем аудио от сервера
                 const response = await fetch(API + '/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -424,48 +406,33 @@
                 });
                 
                 if (!response.ok) {
-                    console.error('TTS chyba:', response.status);
-                    return;
+                    throw new Error('TTS error: ' + response.status);
                 }
                 
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audio = new Audio(audioUrl);
+                // Декодируем аудио через AudioContext (не через Audio element)
+                const audioData = await response.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(audioData);
                 
-                // Подключаем analyser
-                const source = audioContext.createMediaElementSource(audio);
+                // Создаём источник
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
                 source.connect(analyser);
                 analyser.connect(audioContext.destination);
                 
-                return new Promise((resolve) => {
-                    audio.onplay = () => {
-                        isSpeaking = true;
-                        console.log('🎤 Začíná mluvit');
-                    };
-                    
-                    audio.onended = () => {
-                        isSpeaking = false;
-                        URL.revokeObjectURL(audioUrl);
-                        console.log('🎤 Konec mluvení');
-                        resolve();
-                    };
-                    
-                    audio.onerror = () => {
-                        isSpeaking = false;
-                        console.error('❌ Audio chyba');
-                        resolve();
-                    };
-                    
-                    audio.play().catch(err => {
-                        console.error('Play error:', err);
-                        isSpeaking = false;
-                        resolve();
-                    });
-                });
+                isSpeaking = true;
+                
+                source.onended = () => {
+                    isSpeaking = false;
+                    hideStatus();
+                    console.log('Dokončeno');
+                };
+                
+                source.start(0);
                 
             } catch (error) {
                 console.error('TTS chyba:', error);
                 isSpeaking = false;
+                hideStatus();
             }
         }
 
@@ -474,133 +441,20 @@
         // ============================================
         async function getAIResponse(userText) {
             try {
-                // Добавляем инструкцию отвечать кратко
-                const promptWithInstruction = `Odpověz stručně a jasně (max 2-3 věty). ${userText}`;
+                console.log('Zpracovávám:', userText);
+                showStatus('Přemýšlím...');
                 
-                console.log('🤖 Zpracovávám:', userText);
+                // Používám obyčejný endpoint místo stream
+                const response = await fetch(API + '/__ai__?prompt=' + encodeURIComponent(userText) + '&session=' + SESSION_ID);
+                const data = await response.json();
                 
-                let fullText = '';
-                
-                // Стриминг текста
-                const eventSource = new EventSource(API + '/__ai_stream__?prompt=' + encodeURIComponent(promptWithInstruction));
-                
-                eventSource.onmessage = async (event) => {
-                    const data = JSON.parse(event.data);
-                    
-                    if (!data.done) {
-                        fullText += data.text;
-                        console.log('📝 Текст:', fullText);
-                    } else {
-                        eventSource.close();
-                        
-                        // ВЕСЬ текст готов - теперь озвучиваем слитно!
-                        console.log('✅ Весь текст готов:', fullText);
-                        await speakWholeSentence(fullText);
-                    }
-                };
-                
-                eventSource.onerror = () => {
-                    eventSource.close();
-                    console.error('❌ Chyba spojení');
-                };
+                console.log('Odpověď:', data.output);
+                await speak(data.output);
                 
             } catch (error) {
                 console.error('Chyba:', error);
+                hideStatus();
             }
-        }
-        
-        // Озвучивание ЦЕЛОГО текста без пауз
-        async function speakWholeSentence(text) {
-            const WORDS_PER_CHUNK = 5;
-            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-            
-            let audioQueue = [];  // Готовые аудио
-            let generatedCount = 0;
-            
-            // Инициализация Audio Analyzer
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-            }
-            
-            // Разбиваем на чанки
-            const chunks = [];
-            for (let i = 0; i < words.length; i += WORDS_PER_CHUNK) {
-                chunks.push(words.slice(i, i + WORDS_PER_CHUNK).join(' '));
-            }
-            
-            console.log('📦 Генерирую', chunks.length, 'чанков');
-            
-            // Генерируем ВСЕ аудио параллельно
-            const audioPromises = chunks.map(async (chunk) => {
-                const response = await fetch(API + '/tts', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: chunk })
-                });
-                
-                if (response.ok) {
-                    const blob = await response.blob();
-                    return { chunk, url: URL.createObjectURL(blob) };
-                }
-                return null;
-            });
-            
-            // Ждём ВСЕ аудио
-            audioQueue = (await Promise.all(audioPromises)).filter(a => a !== null);
-            
-            console.log('✅ Все аудио готовы! Начинаю слитное воспроизведение');
-            
-            // Воспроизводим слитно
-            for (const { chunk, url } of audioQueue) {
-                await playAudioChunk(url, chunk);
-            }
-            
-            console.log('🎤 Закончил говорить');
-            isSpeaking = false;
-        }
-        
-        // Воспроизведение одного чанка
-        async function playAudioChunk(url, text) {
-            return new Promise(async (resolve) => {
-                console.log('🔊 Говорю:', text);
-                
-                try {
-                    // Загружаем аудио как ArrayBuffer
-                    const response = await fetch(url);
-                    const arrayBuffer = await response.arrayBuffer();
-                    
-                    // Декодируем в AudioBuffer
-                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                    
-                    // Создаём source
-                    const source = audioContext.createBufferSource();
-                    source.buffer = audioBuffer;
-                    
-                    // Подключаем через analyser
-                    source.connect(analyser);
-                    analyser.connect(audioContext.destination);
-                    
-                    // Запускаем анимацию
-                    isSpeaking = true;
-                    
-                    // Когда закончится
-                    source.onended = () => {
-                        URL.revokeObjectURL(url);
-                        resolve();  // Переходим к следующему
-                    };
-                    
-                    // Запускаем
-                    source.start(0);
-                    
-                } catch (err) {
-                    console.error('Audio error:', err);
-                    URL.revokeObjectURL(url);
-                    resolve();
-                }
-            });
         }
 
         // ============================================
@@ -612,6 +466,11 @@
             
             if (!isRecording) {
                 try {
+                    // Инициализируем AudioContext при первом клике
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(stream);
                     chunks = [];
@@ -622,7 +481,6 @@
                         const blob = new Blob(chunks, { type: 'audio/webm' });
                         stream.getTracks().forEach(t => t.stop());
                         
-                        // Скрыть индикатор
                         indicator.classList.remove('active');
                         btn.classList.remove('recording');
                         
@@ -645,7 +503,8 @@
         };
 
         async function processAudio(blob) {
-            console.log('🎤 Zpracovávám audio...');
+            console.log('Zpracovávám audio...');
+            showStatus('Rozpoznávám řeč...');
             
             try {
                 const form = new FormData();
@@ -659,14 +518,16 @@
                 
                 if (sttData.error) {
                     console.error('STT chyba:', sttData.error);
+                    hideStatus();
                     return;
                 }
                 
-                console.log('👤 Řekl jsi:', sttData.text);
+                console.log('Řekl jsi:', sttData.text);
                 await getAIResponse(sttData.text);
                 
             } catch (error) {
                 console.error('Chyba:', error);
+                hideStatus();
             }
         }
     </script>
