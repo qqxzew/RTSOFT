@@ -1000,14 +1000,14 @@ export const Overview = () => {
                 className="text-xl font-bold text-gray-900 mb-2"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                探索 nové možnosti
+                Objev nové možnosti
               </h3>
               <p
                 className="text-gray-700 font-medium"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                Na základě tvého profilu ti doporučujeme prozkoumать střední
-                školy se zaměřením na tvoje silné stránky.
+                Na základě tvého profilu ti doporučujeme prozkoumat střední
+                školy se zaměřením na tvé silné stránky.
               </p>
             </div>
           </div>
