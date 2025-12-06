@@ -1,7 +1,23 @@
 FROM python:3.11-slim
 
 WORKDIR /app
+
+# Copy source
 COPY . .
-RUN pip install --no-cache-dir flask python-dotenv openai
+
+# Install dependencies
+RUN pip install --no-cache-dir \
+    flask \
+    python-dotenv \
+    openai \
+    requests
+
+# Expose Flask port
 EXPOSE 5000
-CMD ["python3", "base.py"]
+
+# Copy and use entrypoint script
+COPY docker-entrypoint-py.sh /app/docker-entrypoint-py.sh
+RUN chmod +x /app/docker-entrypoint-py.sh
+
+ENTRYPOINT ["bash", "/app/docker-entrypoint-py.sh"]
+

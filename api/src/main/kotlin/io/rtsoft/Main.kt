@@ -19,106 +19,89 @@ import java.nio.charset.StandardCharsets
 fun main() {
     initDb()
 
+    val googleClientId = System.getenv("GOOGLE_CLIENT_ID") ?: "Placeholder"
+
     val server =
         simpleServer {
-            if (fetch(
-                    "http://localhost:5000/",
-                    buildRequest {
-                    },
+            if (
+                fetch(
+                    "http://flask:5000/",
+                    buildRequest {},
                 ).getOrNull()?.status != 200
             ) {
                 throw Exception("Flask endpoint not running")
             }
-            route("/__signup__") {
-                POST { req ->
-                    val authReq = req.parseBody<AuthRequest>().getOrNull()!!
 
-                    val exists =
+            // ----------- SIGN IN WITH GOOGLE ONLY -----------
+            route("/__signin_google__") {
+                POST { req ->
+                    val body = req.parseBody<GoogleLoginRequest>().getOrNull()!!
+                    val googleUser = verifyGoogleIdToken(body.idToken, googleClientId) ?: return@POST buildResponse {
+                        headers["Content-Type"] = "application/json"
+                        status = 401
+                        this.body = """{"error":"invalid google token"}"""
+                    }
+
+                    val userId =
                         transaction {
-                            !Users.selectAll().where { Users.username eq authReq.username }.empty()
+                            val existing =
+                                Users.selectAll().where { Users.googleId eq googleUser.googleId }
+                                    .singleOrNull()
+
+                            if (existing != null) {
+                                existing[Users.id]
+                            } else {
+                                Users.insert {
+                                    it[googleId] = googleUser.googleId
+                                    it[email] = googleUser.email
+                                }[Users.id]
+                            }
                         }
-                    if (exists) {
-                        return@POST buildResponse {
-                            headers["Content-Type"] = "application/json"
-                            status = 409
-                            body = """{"error":"username taken"}"""
-                        }
-                    }
-                    val pwHash = hashPassword(authReq.password)
-                    transaction {
-                        Users.insert {
-                            it[username] = authReq.username
-                            it[passwordHash] = pwHash
-                        }
-                    }
+
+                    val token = createToken(googleUser.email)
                     return@POST buildResponse {
                         headers["Content-Type"] = "application/json"
-                        body = """{"status":"ok"}"""
+                        this.body = AuthResponse(token).toJson().getOrNull()!!
                     }
                 }
             }
 
-            route("/__signin__") {
-                POST { req ->
-                    val authReq = req.parseBody<AuthRequest>().getOrNull()!!
-
-                    val user =
-                        transaction {
-                            Users.selectAll().where { Users.username eq authReq.username }.singleOrNull()
-                        }
-                    if (user == null || !verifyPassword(authReq.password, user[Users.passwordHash])) {
-                        return@POST buildResponse {
-                            headers["Content-Type"] = "application/json"
-                            status = 401
-                            body = """{"error":"invalid credentials"}"""
-                        }
-                    }
-                    val token = createToken(authReq.username)
-                    val resp = AuthResponse(token)
-                    val body = resp.toJson().getOrNull()!!
-                    return@POST buildResponse<String> {
-                        headers["Content-Type"] = "application/json"
-                        this.body = body
-                    }
-                }
-            }
-
+            // ----------- PROTECTED AI ROUTE -----------
             route("/__prompt__") {
                 GET { req ->
-                    val authHeader =
-                        req.headers["Authorization"] ?: return@GET buildResponse {
+                    val authHeader = req.headers["Authorization"]
+                        ?: return@GET buildResponse {
                             headers["Content-Type"] = "application/json"
                             status = 401
                             body = """{"error":"no token"}"""
                         }
-                    val token = authHeader.removePrefix("Bearer ").trim()
-                    val username =
-                        verifyToken(token) ?: return@GET buildResponse {
-                            headers["Content-Type"] = "application/json"
-                            status = 403
-                            body = """{"error":"invalid token"}"""
-                        }
 
-                    // build AI-backend URL using query parameters
+                    val token = authHeader.removePrefix("Bearer ").trim()
+                    val email =
+                        verifyToken(token)
+                            ?: return@GET buildResponse {
+                                headers["Content-Type"] = "application/json"
+                                status = 403
+                                body = """{"error":"invalid token"}"""
+                            }
+
                     val q =
                         queries.entries.joinToString("&") { (key, value) ->
-                            "${URLEncoder.encode(key, StandardCharsets.UTF_8)}=${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
+                            "${URLEncoder.encode(key, StandardCharsets.UTF_8)}=" +
+                                    "${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
                         }
+
                     val url = "http://localhost:5000/__ai__?$q"
 
                     val aiResponse = fetch(url, req).getOrNull()
-                    return@GET when {
-                        aiResponse != null -> {
-                            aiResponse
-                        }
+                    if (aiResponse != null) {
+                        return@GET aiResponse
+                    }
 
-                        else -> {
-                            buildResponse {
-                                headers["Content-Type"] = "application/json"
-                                status = 500
-                                body = """{"error":"AI backend error"}"""
-                            }
-                        }
+                    return@GET buildResponse {
+                        headers["Content-Type"] = "application/json"
+                        status = 500
+                        body = """{"error":"AI backend error"}"""
                     }
                 }
             }

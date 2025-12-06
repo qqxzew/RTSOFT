@@ -23,6 +23,10 @@ dependencies {
     implementation(libs.exposed.jdbc)
     implementation(libs.h2)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("com.google.api-client:google-api-client:2.2.0")
+    implementation("com.google.oauth-client:google-oauth-client-jetty:1.35.0")
+    implementation("com.google.http-client:google-http-client-gson:1.43.3")
+
 }
 
 tasks.test {

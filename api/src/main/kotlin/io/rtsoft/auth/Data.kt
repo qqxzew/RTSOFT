@@ -3,9 +3,8 @@ package io.rtsoft.auth
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AuthRequest(
-    val username: String,
-    val password: String,
+data class GoogleLoginRequest(
+    val idToken: String,
 )
 
 @Serializable
