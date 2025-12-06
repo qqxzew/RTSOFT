@@ -5,6 +5,7 @@ import io.rtsoft.db.Users
 import io.rtsoft.db.initDb
 import io.voidx.dto.buildRequest
 import io.voidx.dto.buildResponse
+import io.voidx.dto.emptyResponse
 import io.voidx.dto.ok
 import io.voidx.fetch
 import io.voidx.json.parseBody
@@ -33,6 +34,23 @@ fun main() {
                 ).getOrNull()?.status != 200
             ) {
                 throw Exception("Flask endpoint not running")
+            }
+
+            route("/") {
+                GET {
+                    val q =
+                        queries.entries.joinToString("&") { (key, value) ->
+                            "${URLEncoder.encode(key, StandardCharsets.UTF_8)}=" +
+                                    "${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
+                        }
+
+                    val url = "http://localhost:3000/$q"
+                    return@GET fetch(url, it).getOrNull() ?: buildResponse {
+                        headers["Content-Type"] = "application/json"
+                        status = 500
+                        body = """{"error":"React error"}"""
+                    }
+                }
             }
 
             route("/chat") {
