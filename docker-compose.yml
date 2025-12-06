@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   react:
     build:
@@ -12,16 +11,16 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    depends_on:
-      - kotlin
-      - flask
-
+    command: sh -c "npm install && npm run dev"
   kotlin:
     build:
       context: ./api
     ports:
       - "8080:8080"
     environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PAGE_ACCESS_TOKEN=${PAGE_ACCESS_TOKEN}
+      - VERIFY_TOKEN=${VERIFY_TOKEN}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - FRONTEND_URL=http://react:3000
       - FLASK_URL=http://flask:5000
@@ -33,7 +32,7 @@ services:
     build:
       context: ./ai
     ports:
-      - "5001:5000"
+      - "5000:5000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     command: python3 base.py
