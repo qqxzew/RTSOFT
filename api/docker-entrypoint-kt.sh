@@ -14,5 +14,5 @@ echo "[kotlin-entrypoint] OPENAI_API_KEY=${OPENAI_API_KEY:-not set}"
 echo "[kotlin-entrypoint] PAGE_ACCESS_TOKEN=${PAGE_ACCESS_TOKEN:-not set}"
 echo "[kotlin-entrypoint] VERIFY_TOKEN=${VERIFY_TOKEN:-not set}"
 
-# Run Gradle app
-exec ./gradlew run
+# Run Gradle app using pre-installed Gradle
+exec gradle run
