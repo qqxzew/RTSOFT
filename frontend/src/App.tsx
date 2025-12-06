@@ -9,11 +9,10 @@ import { RoadmapPage } from "./pages/RoadmapPage";
 import { Auth } from "./pages/Auth";
 import { AIOnboarding } from "./pages/AIOnboarding";
 import { Overview } from "./pages/Overview";
-import { Chat } from "./pages/Chat";
-import { Chat3D } from "./pages/Chat3D";
 import "./App.css";
 import Header from "./components/header";
 import { apiService } from "./utils/api";
+import {Chat, Chat3D} from "./pages";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
