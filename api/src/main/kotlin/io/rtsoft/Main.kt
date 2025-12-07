@@ -7,10 +7,13 @@ import com.openai.models.chat.completions.ChatCompletionCreateParams
 import io.rtsoft.auth.*
 import io.rtsoft.db.Users
 import io.rtsoft.db.initDb
+import io.rtsoft.db.saveOnboarding
 import io.voidx.Method
 import io.voidx.dto.buildRequest
 import io.voidx.dto.buildResponse
 import io.voidx.dto.emptyResponse
+import io.voidx.dto.forbidden
+import io.voidx.dto.unauthorized
 import io.voidx.fetch
 import io.voidx.json.parseBody
 import io.voidx.json.toJson
@@ -233,6 +236,23 @@ Return the output as valid JSON array of steps. Do it in czech.
                 emptyResponse()
             }
         })
+
+        route("/__save_onboarding__") {
+            POST { req ->
+                val body = req.parseBody<Map<String, Any>>().getOrNull() ?: emptyMap()
+                val token = req.headers["Authorization"]?.removePrefix("Bearer ") ?: return@POST unauthorized("")
+                val googleId = verifyToken(token) ?: return@POST forbidden("")
+
+                val onboarding = body["onboarding"] ?: emptyList<Any>()
+                saveOnboarding(googleId, onboarding as List<Map<String, String>>)
+
+                buildResponse {
+                    status = 200
+                    this.body = """{"status":"ok"}"""
+                }
+            }
+        }
+
     }
 }
 
