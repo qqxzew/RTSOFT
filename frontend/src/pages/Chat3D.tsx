@@ -31,7 +31,7 @@ export const Chat3D = () => {
     const micStreamRef = useRef<MediaStream | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
-    const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
+    const dataArrayRef = useRef<Uint8Array | null>(null);
     const gainNodeRef = useRef<GainNode | null>(null);
     const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
@@ -368,7 +368,7 @@ export const Chat3D = () => {
             const pc = new RTCPeerConnection();
             peerConnectionRef.current = pc;
 
-            const audioElement = document.createElement('audio');
+            const audioElement = document.createElement("audio");
             audioElement.autoplay = true;
             audioElement.setAttribute('playsinline', '');
             document.body.appendChild(audioElement);
@@ -518,7 +518,7 @@ export const Chat3D = () => {
                 content: [{
                     type: 'input_text',
                     text: 'Pozdrav mě krátce a představ se jako Klára, přátelská školní poradkyně pro střední školy v Plzeňském kraji.'
-                }]
+                }] as any[]
             }
         }));
         dataChannelRef.current.send(JSON.stringify({ type: 'response.create' }));
@@ -536,7 +536,6 @@ export const Chat3D = () => {
             case 'response.output_item.added':
             case 'response.content_part.added':
             case 'response.audio.delta':
-                // Clear any existing unlock timeout
                 if (forceUnlockTimeoutRef.current) {
                     clearTimeout(forceUnlockTimeoutRef.current);
                     forceUnlockTimeoutRef.current = null;
@@ -546,23 +545,14 @@ export const Chat3D = () => {
                     setIsAISpeaking(true);
                     isSpeakingRef.current = true;
                     setRecordingText('Klára mluví...');
-                    console.log('🔒 AI started speaking');
                 }
                 break;
 
             case 'response.audio.done':
             case 'response.done':
-                console.log('📡 API response done - scheduling unlock');
                 isSpeakingRef.current = false;
-
-                // Clear any existing timeout
-                if (forceUnlockTimeoutRef.current) {
-                    clearTimeout(forceUnlockTimeoutRef.current);
-                }
-
-                // Force unlock after audio finishes playing (longer delay)
+                if (forceUnlockTimeoutRef.current) clearTimeout(forceUnlockTimeoutRef.current);
                 forceUnlockTimeoutRef.current = setTimeout(() => {
-                    console.log('🔓 Force unlock - button enabled');
                     setIsAISpeaking(false);
                     setRecordingText('Drž a mluv');
                     lastAudioDetectedRef.current = 0;
@@ -578,13 +568,9 @@ export const Chat3D = () => {
                 break;
 
             case 'conversation.item.input_audio_transcription.completed':
-                console.log('User said:', event.transcript);
                 break;
 
             case 'error':
-                if (event.error?.code !== 'response_cancel_not_active') {
-                    console.error('Realtime error:', event.error);
-                }
                 break;
         }
     };
@@ -633,8 +619,6 @@ export const Chat3D = () => {
     // ============================================
     // RENDER
     // ============================================
-    // ...keep all imports and logic the same
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
             {/* Background bubbles */}
@@ -715,7 +699,7 @@ export const Chat3D = () => {
                                     </div>
                                 </div>
 
-                                {/* Microphone button */}
+                                {/* Microphone & Stop AI buttons */}
                                 <div className="flex items-center gap-3">
                                     <button
                                         onMouseDown={startTalking}
@@ -735,18 +719,41 @@ export const Chat3D = () => {
                                                         : "bg-gray-400 hover:bg-gray-500 active:scale-95"
                                         }`}
                                     >
-                  <span className="text-3xl">
-                    {isAISpeaking ? "⏳" : isPushingToTalk ? "🔴" : "🎤"}
-                  </span>
+                                        <span className="text-3xl">
+                                            {isAISpeaking ? "⏳" : isPushingToTalk ? "🔴" : "🎤"}
+                                        </span>
                                         <span>
-                    {isAISpeaking
-                        ? "AI mluví..."
-                        : isPushingToTalk
-                            ? "Nahrávám"
-                            : isRealtimeConnected
-                                ? "Drž a mluv"
-                                : "Připojit se"}
-                  </span>
+                                            {isAISpeaking
+                                                ? "AI mluví..."
+                                                : isPushingToTalk
+                                                    ? "Nahrávám"
+                                                    : isRealtimeConnected
+                                                        ? "Drž a mluv"
+                                                        : "Připojit se"}
+                                        </span>
+                                    </button>
+
+                                    {/* Stop AI button */}
+                                    <button
+                                        onClick={() => {
+                                            if (dataChannelRef.current && dataChannelRef.current.readyState === 'open') {
+                                                dataChannelRef.current.send(JSON.stringify({ type: 'response.cancel' }));
+                                                dataChannelRef.current.send(JSON.stringify({ type: 'output_audio_buffer.clear' }));
+                                            }
+                                            isSpeakingRef.current = false;
+                                            setIsAISpeaking(false);
+                                            setRecordingText('Drž a mluv');
+                                            mouthOpenValueRef.current = 0;
+                                            console.log('🛑 AI speech stopped');
+                                        }}
+                                        disabled={!isAISpeaking}
+                                        className={`px-4 py-4 rounded-2xl font-bold text-white shadow-md transition-all ${
+                                            isAISpeaking
+                                                ? "bg-red-600 hover:bg-red-700"
+                                                : "bg-gray-300 cursor-not-allowed opacity-50"
+                                        }`}
+                                    >
+                                        🛑 Stop AI
                                     </button>
                                 </div>
                             </div>
@@ -756,5 +763,4 @@ export const Chat3D = () => {
             </section>
         </div>
     );
-
-}
+};

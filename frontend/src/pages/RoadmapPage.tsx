@@ -56,10 +56,10 @@ export const RoadmapPage = () => {
         { id: "custom", title: "Vlastní profese", icon: "✨" },
     ];
 
-    const generateRoadmap = (career: string) => {
+    const generateRoadmap = (career: string, isCustom = false, customNodes?: RoadmapNode[]) => {
         setIsGenerating(true);
         setTimeout(() => {
-            const nodes = getRoadmapForCareer(career);
+            const nodes = isCustom && customNodes ? customNodes : getRoadmapForCareer(career);
             setRoadmapNodes(nodes);
             setIsGenerating(false);
             localStorage.setItem("userRoadmap", JSON.stringify({ career, nodes }));
@@ -67,7 +67,9 @@ export const RoadmapPage = () => {
     };
 
 
-    const getRoadmapForCareer = (career: string): RoadmapNode[] => {
+    const getRoadmapForCareer = (career: string, isCustom = false): RoadmapNode[] => {
+        if (isCustom) return [];
+
         const c = career.toLowerCase();
         setCompletedNodes(new Set());
 
@@ -547,9 +549,8 @@ export const RoadmapPage = () => {
                 estimatedTime: node.estimated_duration,
             }));
 
-            setRoadmapNodes(nodes);
+            generateRoadmap(customCareer, true, nodes);
             setCompletedNodes(new Set());
-            localStorage.setItem("userRoadmap", JSON.stringify({ career: customCareer, nodes }));
         } catch (err) {
             console.error(err);
             alert("Nepodařilo se vygenerovat roadmapu. Zkus to znovu.");
