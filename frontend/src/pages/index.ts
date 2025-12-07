@@ -1,5 +1,4 @@
 export { Landing } from "./Landing";
-export { GoogleLogin } from "./GoogleLogin";
 export { Onboarding } from "./Onboarding";
 export { ProfessionRevealPage } from "./ProfessionRevealPage";
 export { Roadmap } from "./Roadmap";

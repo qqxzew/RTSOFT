@@ -36,7 +36,7 @@ const Header: React.FC<{}> = () => {
     localStorage.removeItem("onboardingComplete");
     localStorage.removeItem("onboardingResponses");
     setIsLoggedIn(false);
-    navigate("/auth");
+    navigate("/");
   };
 
   return (
