@@ -3,7 +3,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "3000:3000"
+      - "45001:3000"
     environment:
       - CHOKIDAR_USEPOLLING=true
       - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -12,11 +12,12 @@ services:
       - ./frontend:/app
       - /app/node_modules
     command: sh -c "npm install && npm run dev"
+
   kotlin:
     build:
       context: ./api
     ports:
-      - "8080:8080"
+      - "46002:8080"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - PAGE_ACCESS_TOKEN=${PAGE_ACCESS_TOKEN}
@@ -32,7 +33,7 @@ services:
     build:
       context: ./ai
     ports:
-      - "5000:5000"
+      - "47003:5000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     command: python3 base.py
