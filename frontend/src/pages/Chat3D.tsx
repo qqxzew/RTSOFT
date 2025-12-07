@@ -416,12 +416,29 @@ export const Chat3D = () => {
             const dataChannel = pc.createDataChannel('oai-events');
             dataChannelRef.current = dataChannel;
 
+            // Collect onboarding answers
+            let onboardingText = "";
+            try {
+                const raw = localStorage.getItem("onboardingResponses");
+                const answers = raw ? JSON.parse(raw) : [];
+
+                if (Array.isArray(answers) && answers.length > 0) {
+                    onboardingText += "\n\nUŽIVATELSKÉ ODPOVĚDI Z ONBOARDINGU:\n";
+                    answers.forEach((item: any, i: number) => {
+                        onboardingText += `Otázka: ${item.question}\nOdpověď: ${item.answer}\n\n`;
+                    });
+                }
+            } catch (e) {
+                console.warn("Failed to parse onboarding:", e);
+            }
+
+
             dataChannel.onopen = () => {
                 dataChannel.send(JSON.stringify({
                     type: 'session.update',
                     session: {
                         modalities: ['text', 'audio'],
-                        instructions: config.system_prompt,
+                        instructions: config.system_prompt + onboardingText,
                         voice: 'shimmer',
                         input_audio_format: 'pcm16',
                         output_audio_format: 'pcm16',

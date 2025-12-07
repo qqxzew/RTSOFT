@@ -136,34 +136,25 @@ fun main() {
         // ----------- PROTECTED AI ROUTE -----------
         route("/__prompt__") {
             GET { req ->
-                val authHeader = req.headers["Authorization"]
-                    ?: return@GET buildResponse {
-                        headers["Content-Type"] = "application/json"
-                        status = 401
-                        body = """{"error":"no token"}"""
-                    }
-                val token = authHeader.removePrefix("Bearer ").trim()
-                val email = verifyToken(token)
-                    ?: return@GET buildResponse {
-                        headers["Content-Type"] = "application/json"
-                        status = 403
-                        body = """{"error":"invalid token"}"""
-                    }
+                val body = req.parseBody<Map<String, Any>>().getOrNull() ?: emptyMap()
+                val prompt = body["prompt"] as? String ?: ""
+                val session = body["session"] as? String ?: "default"
+                val onboarding = body["onboarding"] ?: emptyList<Any>()
 
-                val q = queries.entries.joinToString("&") { (key, value) ->
-                    "${URLEncoder.encode(key, StandardCharsets.UTF_8)}=" +
-                            "${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
-                }
-                val url = "$flaskUrl/__ai__?$q"
+                val flaskBody = mapOf(
+                    "prompt" to prompt,
+                    "session" to session,
+                    "onboarding" to onboarding
+                )
 
-                val aiResponse = fetch(url, req).getOrNull()
-                if (aiResponse != null) {
-                    return@GET aiResponse
-                }
-                return@GET buildResponse {
+                val url = "$flaskUrl/__ai__"
+                return@GET fetch(url, buildRequest {
+                    method = Method.POST
+                    this.body = flaskBody.toJson().getOrNull()!!
                     headers["Content-Type"] = "application/json"
+                }).getOrNull() ?: buildResponse {
                     status = 500
-                    body = """{"error":"AI backend error"}"""
+                    this.body = """{"error":"AI backend error"}"""
                 }
             }
             OPTIONS { _ ->
@@ -182,8 +173,12 @@ fun main() {
             POST { req ->
                 val body = req.parseBody<Map<String, String>>().getOrNull() ?: emptyMap()
                 val profession = body["profession"] ?: "Frontend Developer"
+                val onboardingJson = req.headers["X-Onboarding-Data"] ?: "[]"
 
                 val prompt = """
+                    Use the following structured user onboarding information to personalize the roadmap:
+
+$onboardingJson
                     Generate a roadmap for the profession "$profession". 
 Each roadmap step should include:
 - id

@@ -33,9 +33,19 @@ export const Chat = () => {
         setIsWaiting(true);
 
         try {
-            const response = await fetch(
-                `${API}/__ai_stream__?prompt=${encodeURIComponent(text)}&session=${SESSION_ID}`,
-            );
+            let onboardingAnswers = [];
+            try {
+                const raw = localStorage.getItem("onboardingResponses");
+                if (raw) onboardingAnswers = JSON.parse(raw);
+            } catch {}
+            const response = await fetch(`${API}/__ai_stream__?session=${SESSION_ID}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    prompt: text,
+                    onboarding: onboardingAnswers
+                })
+            });
             const reader = response.body?.getReader();
             if (!reader) throw new Error("No response reader");
 

@@ -184,17 +184,32 @@ def health():
 # ============================================
 # TEXT CHAT ENDPOINTS
 # ============================================
-@app.route('/__ai__', methods=['GET'])
+@app.route('/__ai__', methods=['POST'])
 def get_response():
-    prompt = request.args.get('prompt')
-    session_id = request.args.get('session', 'default')
+    data = request.get_json() or {}
+    prompt = data.get('prompt')
+    session_id = data.get('session', 'default')
+    onboarding_data = data.get('onboarding', [])
 
     _add_to_history(session_id, "user", prompt)
+
+    onboarding_context = ""
+    if isinstance(onboarding_data, list) and len(onboarding_data) > 0:
+        onboarding_context += "UŽIVATELSKÉ ODPOVĚDI Z ONBOARDINGU:\n"
+        for item in onboarding_data:
+            q = item.get("question", "")
+            a = item.get("answer", "")
+            onboarding_context += f"Otázka: {q}\nOdpověď: {a}\n\n"
 
     schools_context = _get_schools_context()
     history = _get_or_create_history(session_id)
 
-    messages = [{"role": "system", "content": SYSTEM_PROMPT + "\n\n" + schools_context}]
+    messages = [{
+        "role": "system",
+        "content": SYSTEM_PROMPT
+                   + "\n\n" + schools_context
+                   + "\n\n" + onboarding_context
+    }]
     messages.extend(history)
 
     response = _get_openai_client().chat.completions.create(
@@ -209,18 +224,33 @@ def get_response():
     return jsonify({'output': output})
 
 
-@app.route('/__ai_stream__', methods=['GET'])
+@app.route('/__ai_stream__', methods=['POST'])
 def get_response_stream():
-    prompt = request.args.get('prompt')
-    session_id = request.args.get('session', 'default')
+    data = request.get_json() or {}
+    prompt = data.get('prompt')
+    session_id = data.get('session', 'default')
+    onboarding_data = data.get('onboarding', [])
 
     _add_to_history(session_id, "user", prompt)
+
+    onboarding_context = ""
+    if isinstance(onboarding_data, list) and len(onboarding_data) > 0:
+        onboarding_context += "UŽIVATELSKÉ ODPOVĚDI Z ONBOARDINGU:\n"
+        for item in onboarding_data:
+            q = item.get("question", "")
+            a = item.get("answer", "")
+            onboarding_context += f"Otázka: {q}\nOdpověď: {a}\n\n"
 
     def generate():
         schools_context = _get_schools_context()
         history = _get_or_create_history(session_id)
 
-        messages = [{"role": "system", "content": SYSTEM_PROMPT + "\n\n" + schools_context}]
+        messages = [{
+            "role": "system",
+            "content": SYSTEM_PROMPT
+                       + "\n\n" + schools_context
+                       + "\n\n" + onboarding_context
+        }]
         messages.extend(history)
 
         stream = _get_openai_client().chat.completions.create(
@@ -240,8 +270,11 @@ def get_response_stream():
         _add_to_history(session_id, "assistant", full_text)
         yield f"data: {json.dumps({'text': '', 'done': True, 'full': full_text})}\n\n"
 
-    return Response(stream_with_context(generate()), mimetype='text/event-stream',
-                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'}
+    )
 
 
 @app.route('/reset', methods=['POST'])

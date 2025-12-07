@@ -6,112 +6,147 @@ import { onboardingQuestions } from "../utils/onboardingData";
 import type { UserResponse } from "../utils/onboardingData";
 
 export const AIOnboarding = () => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userInput, setUserInput] = useState("");
-  const [responses, setResponses] = useState<UserResponse[]>([]);
-  const [isAITyping, setIsAITyping] = useState(false);
-  const [showQuestion, setShowQuestion] = useState(false);
-  const [selectedChoices, setSelectedChoices] = useState<string[]>([]);
-  const [progress, setProgress] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [userInput, setUserInput] = useState("");
+    const [responses, setResponses] = useState<UserResponse[]>([]);
+    const [isAITyping, setIsAITyping] = useState(false);
+    const [showQuestion, setShowQuestion] = useState(false);
+    const [selectedChoices, setSelectedChoices] = useState<string[]>([]);
+    const [progress, setProgress] = useState(0);
+    const [displayedText, setDisplayedText] = useState("");
 
-  const currentQuestion = onboardingQuestions[currentQuestionIndex];
-  const totalQuestions = onboardingQuestions.length;
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    // Check if user is authenticated
-    if (!localStorage.getItem("isAuthenticated")) {
-      navigate("/auth");
-      return;
-    }
+    const currentQuestion = onboardingQuestions[currentQuestionIndex];
+    const totalQuestions = onboardingQuestions.length;
 
-    // Show AI message with typing effect
-    setIsAITyping(true);
-    setDisplayedText("");
+    // -------------------------------------------------------------
+    // 🔥 LOAD SAVED DATA FROM LOCALSTORAGE
+    // -------------------------------------------------------------
+    useEffect(() => {
+        const savedResponses = localStorage.getItem("onboardingResponses");
+        const savedIndex = localStorage.getItem("onboardingIndex");
 
-    const typingTimer = setTimeout(() => {
-      setIsAITyping(false);
-      setShowQuestion(true);
-
-      // Typing animation for AI message
-      const message = currentQuestion.aiMessage;
-      let i = 0;
-      const typingInterval = setInterval(() => {
-        if (i < message.length) {
-          setDisplayedText(message.slice(0, i + 1));
-          i++;
-        } else {
-          clearInterval(typingInterval);
+        if (savedResponses) {
+            setResponses(JSON.parse(savedResponses));
         }
-      }, 30);
 
-      return () => clearInterval(typingInterval);
-    }, 800);
+        if (savedIndex) {
+            setCurrentQuestionIndex(Number(savedIndex));
+        }
+    }, []);
 
-    return () => clearTimeout(typingTimer);
-  }, [currentQuestionIndex, navigate, currentQuestion.aiMessage]);
+    // -------------------------------------------------------------
+    // 🔥 SAVE QUESTION INDEX WHEN IT CHANGES
+    // -------------------------------------------------------------
+    useEffect(() => {
+        localStorage.setItem("onboardingIndex", String(currentQuestionIndex));
+    }, [currentQuestionIndex]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [responses, showQuestion]);
+    // -------------------------------------------------------------
+    // AI typing effect for the current question
+    // -------------------------------------------------------------
+    useEffect(() => {
+        if (!localStorage.getItem("isAuthenticated")) {
+            navigate("/auth");
+            return;
+        }
 
-  useEffect(() => {
-    setProgress((currentQuestionIndex / totalQuestions) * 100);
-  }, [currentQuestionIndex]);
+        setIsAITyping(true);
+        setDisplayedText("");
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
+        const typingTimer = setTimeout(() => {
+            setIsAITyping(false);
+            setShowQuestion(true);
 
-    if (currentQuestion.type === "text" && !userInput.trim()) return;
-    if (currentQuestion.type === "choice" && selectedChoices.length === 0)
-      return;
+            const message = currentQuestion.aiMessage;
+            let i = 0;
 
-    const answer =
-      currentQuestion.type === "text"
-        ? currentQuestion.promptPrefix + " " + userInput
-        : selectedChoices.join(", ");
+            const typingInterval = setInterval(() => {
+                if (i < message.length) {
+                    setDisplayedText(message.slice(0, i + 1));
+                    i++;
+                } else {
+                    clearInterval(typingInterval);
+                }
+            }, 30);
 
-    const newResponse: UserResponse = {
-      questionId: currentQuestion.id,
-      question: currentQuestion.aiMessage,
-      answer,
-      category: currentQuestion.category,
-      timestamp: new Date().toISOString(),
+            return () => clearInterval(typingInterval);
+        }, 800);
+
+        return () => clearTimeout(typingTimer);
+    }, [currentQuestionIndex, navigate, currentQuestion.aiMessage]);
+
+    // Auto scroll
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [responses, showQuestion]);
+
+    // Progress bar logic
+    useEffect(() => {
+        setProgress((currentQuestionIndex / totalQuestions) * 100);
+    }, [currentQuestionIndex]);
+
+    // -------------------------------------------------------------
+    // Handle answer submission
+    // -------------------------------------------------------------
+    const handleSubmit = (e?: React.FormEvent) => {
+        e?.preventDefault();
+
+        if (currentQuestion.type === "text" && !userInput.trim()) return;
+        if (currentQuestion.type === "choice" && selectedChoices.length === 0)
+            return;
+
+        const answer =
+            currentQuestion.type === "text"
+                ? currentQuestion.promptPrefix + " " + userInput
+                : selectedChoices.join(", ");
+
+        const newResponse: UserResponse = {
+            questionId: currentQuestion.id,
+            question: currentQuestion.aiMessage,
+            answer,
+            category: currentQuestion.category,
+            timestamp: new Date().toISOString(),
+        };
+
+        const updated = [...responses, newResponse];
+        setResponses(updated);
+
+        // Save to localStorage
+        localStorage.setItem("onboardingResponses", JSON.stringify(updated));
+
+        setUserInput("");
+        setSelectedChoices([]);
+        setShowQuestion(false);
+
+        // Continue or finish onboarding
+        if (currentQuestionIndex < totalQuestions - 1) {
+            setTimeout(() => {
+                setCurrentQuestionIndex(currentQuestionIndex + 1);
+            }, 500);
+        } else {
+            setTimeout(() => {
+                localStorage.setItem("onboardingComplete", "true");
+
+                // Optional: cleanup index
+                localStorage.removeItem("onboardingIndex");
+
+                navigate("/");
+            }, 1500);
+        }
     };
 
-    setResponses([...responses, newResponse]);
-    setUserInput("");
-    setSelectedChoices([]);
-    setShowQuestion(false);
-
-    // Save responses to localStorage
-    const allResponses = [...responses, newResponse];
-    localStorage.setItem("onboardingResponses", JSON.stringify(allResponses));
-
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setTimeout(() => {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-      }, 500);
-    } else {
-      // Onboarding complete
-      setTimeout(() => {
-        localStorage.setItem("onboardingComplete", "true");
-        navigate("/");
-      }, 1500);
-    }
-  };
-
-  const handleChoiceToggle = (choice: string) => {
-    setSelectedChoices((prev) => {
-      if (prev.includes(choice)) {
-        return prev.filter((c) => c !== choice);
-      }
-      return [...prev, choice];
-    });
-  };
+    // Toggle choices
+    const handleChoiceToggle = (choice: string) => {
+        setSelectedChoices((prev) =>
+            prev.includes(choice)
+                ? prev.filter((c) => c !== choice)
+                : [...prev, choice]
+        );
+    };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100">
